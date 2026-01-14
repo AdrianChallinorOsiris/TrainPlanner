@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://pi:5000'
+const API_BASE_URL = 'http://pi:5000/api'
 const HEALTH_CHECK_TIMEOUT = 3000
 
 export const api = {
@@ -7,7 +7,7 @@ export const api = {
     const timeoutId = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT)
     
     try {
-      const response = await fetch(`${API_BASE_URL}/API/health`, {
+      const response = await fetch(`${API_BASE_URL}/health`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

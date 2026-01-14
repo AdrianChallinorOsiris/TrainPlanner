@@ -52,7 +52,6 @@ export function getAllTrackSections() {
 }
 
 // Initialize section 1
-// Note: Path uses 'l' for relative lines 
 setTrackSection(1, new TrackSection(1, {
   color: '#00008B', // Dark blue
   path: 'M 1400 200 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 2000 l -1600 0 a 500 500 0 0 1 0 -2000 l 400 0 m 0 -10 l 0 20 m 0 -10'
@@ -60,11 +59,26 @@ setTrackSection(1, new TrackSection(1, {
 }))
 
 // Initialize section 2
+setTrackSection(2, new TrackSection(2, {
+    color: 'blue', // Dark blue
+    path: 'M 1400 400 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 1600 M 1400 2000 m 0 -10 l 0 20 m 0 -10 M 1400 1900 m -10 10 l 20 -20',
+    points: [
+      new PointDefinition({
+        id: 6, 
+        handedness: 'right',
+        rotation: 180,
+        x: 1600, // Entry open end
+        y: 2000
+      })
+    ]
+  }))
+
+// Initialize section 3
 // Yellow section with two points and connecting paths
 // Point 1-A: left-hand, 180° rotation, thru end at (800, 200)
 // Point 3-A: right-hand, 0° rotation, entry at (620, 200)
-setTrackSection(2, new TrackSection(2, {
-  color: '#000000', // Yellow
+setTrackSection(3, new TrackSection(3, {
+  color: 'yellow', // Yellow
   points: [
     new PointDefinition({
       id: 1, // Point 1-A (controlled by Point 1)

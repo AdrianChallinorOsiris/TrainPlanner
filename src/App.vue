@@ -20,12 +20,24 @@
   </div>
   
   <!-- Simulation Mode Dialog -->
-  <div v-if="showSimulationDialog" class="dialog-overlay" @click.self="closeDialog">
+  <div v-if="showSimulationDialog" class="dialog-overlay" @click.self="closeSimulationDialog">
     <div class="dialog">
       <h2>Simulation Mode</h2>
       <p>Unable to connect to Raspberry Pi at pi:5000</p>
       <p>Running in <strong>simulation mode</strong>, not live mode.</p>
-      <button @click="closeDialog" class="dialog-button">OK</button>
+      <button @click="closeSimulationDialog" class="dialog-button">OK</button>
+    </div>
+  </div>
+
+  <!-- Connected Dialog -->
+  <div v-if="showConnectedDialog" class="dialog-overlay" @click.self="closeConnectedDialog">
+    <div class="dialog">
+      <div class="dialog-title-row">
+        <div class="warning-icon" aria-hidden="true">!</div>
+        <h2>Connection Status</h2>
+      </div>
+      <p>You have connection to the track controller.</p>
+      <button @click="closeConnectedDialog" class="dialog-button">OK</button>
     </div>
   </div>
 </template>
@@ -42,6 +54,7 @@ import { api } from './services/api'
 
 const logWindowRef = ref(null)
 const showSimulationDialog = ref(false)
+const showConnectedDialog = ref(false)
 
 // Sections state - shared between SectionsPane and TrackLayout
 const sections = ref(
@@ -53,8 +66,12 @@ const sections = ref(
   }))
 )
 
-const closeDialog = () => {
+const closeSimulationDialog = () => {
   showSimulationDialog.value = false
+}
+
+const closeConnectedDialog = () => {
+  showConnectedDialog.value = false
 }
 
 const checkHealth = async () => {
@@ -68,6 +85,7 @@ const checkHealth = async () => {
     if (logWindowRef.value) {
       logWindowRef.value.addMessage('Connected to Raspberry Pi - Running in LIVE mode')
     }
+    showConnectedDialog.value = true
   } else {
     if (logWindowRef.value) {
       logWindowRef.value.addMessage(`Connection failed: ${result.error} - Running in SIMULATION mode`)
@@ -175,6 +193,31 @@ onMounted(() => {
   margin: 0 0 1rem 0;
   font-size: 1.5rem;
   color: #333;
+}
+
+.dialog-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.dialog-title-row h2 {
+  margin: 0;
+}
+
+.warning-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #ffc107;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .dialog p {
