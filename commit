@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -e
+
+MESSAGE="$1"
+
+if [ -z "$MESSAGE" ]; then
+  echo "Usage: ./commit \"MESSAGE\""
+  exit 1
+fi
+
+git add -A
+git commit -m "$MESSAGE"
+git push
