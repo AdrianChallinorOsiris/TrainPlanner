@@ -6,6 +6,7 @@
 export class TrackSection {
   constructor(id, config = {}) {
     this.id = id
+    this.name = config.name || ''
     this.color = config.color || '#333333' // Default color
     this.path = config.path || null // SVG path definition (path d attribute)
     this.points = config.points || [] // Array of point definitions
@@ -54,6 +55,7 @@ export function getAllTrackSections() {
 // Initialize section 1
 setTrackSection(1, new TrackSection(1, {
   color: '#00008B', // Dark blue
+  name: 'Outer loop',
   path: 'M 1400 200 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 2000 l -1600 0 a 500 500 0 0 1 0 -2000 l 400 0 m 0 -10 l 0 20 m 0 -10'
 
 }))
@@ -61,6 +63,7 @@ setTrackSection(1, new TrackSection(1, {
 // Initialize section 2
 setTrackSection(2, new TrackSection(2, {
     color: 'blue', // Dark blue
+    name: 'Middle Loop',
     path: 'M 1400 400 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 1600  l -1600 0 a 500 500 0 0 1 0 -1600 ',
     points: [
       new PointDefinition({
@@ -86,6 +89,7 @@ setTrackSection(2, new TrackSection(2, {
 // Point 3-A: right-hand, 0° rotation, entry at (620, 200)
 setTrackSection(3, new TrackSection(3, {
   color: 'yellow', 
+  name: 'Outer loop - Platform 1',
   points: [
     new PointDefinition({
       id: 1, // Point 1-A (controlled by Point 1)
@@ -107,6 +111,7 @@ setTrackSection(3, new TrackSection(3, {
 
 setTrackSection(4, new TrackSection(4, {
     color: 'lightblue', // Yellow
+    name: 'Middle loop Platform 2',
     points: [
       new PointDefinition({
         id: 2, 
@@ -135,6 +140,7 @@ setTrackSection(4, new TrackSection(4, {
 
   setTrackSection(5, new TrackSection(5, {
     color: 'lightgreen', 
+    name: 'Inner loop - part 1',
     points: [
       new PointDefinition({
         id: 4, 
@@ -156,16 +162,19 @@ setTrackSection(4, new TrackSection(4, {
 
   setTrackSection(6, new TrackSection(6, {
     color: 'crimson', 
+    name: 'Inner loop - Station',
     path: 'M 600 600 l 800 0 '
   }))
 
   setTrackSection(7, new TrackSection(7, {
     color: 'purple', 
+    name: 'Inner loop - part 2',
     path: 'M 1400 1800 l -1200 0 '
   }))
 
   setTrackSection(8, new TrackSection(8, {
     color: 'cyan', 
+    name: 'Sidings selector',
     points: [
       new PointDefinition({
         id: 7, 
@@ -183,8 +192,10 @@ setTrackSection(4, new TrackSection(4, {
       })
     ],
   }))
-  setTrackSection(9, new TrackSection(8, {
+
+  setTrackSection(9, new TrackSection(9, {
     color: 'cyan',
+    name: 'Inner loop - part 3',
     path: 'M 0 1800 a 500 500 0 0 1 0 -1200 l 400 0 ',
     points: [
       new PointDefinition({
@@ -202,4 +213,16 @@ setTrackSection(4, new TrackSection(4, {
         y: 600
       })
     ],
+  }))
+
+  setTrackSection(10, new TrackSection(10, {
+    color: 'red',
+    name: 'Reversing line',
+    path: 'M 200 500 l 200 200 l 853 853 ',
+  }))
+
+  setTrackSection(11, new TrackSection(11, {
+    color: 'green',
+    name: 'Inner loop - passing point',
+    path: 'M 200 1700 l 68 -68 l 750 0 ',
   }))

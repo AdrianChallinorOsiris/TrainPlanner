@@ -29,17 +29,7 @@
     </div>
   </div>
 
-  <!-- Connected Dialog -->
-  <div v-if="showConnectedDialog" class="dialog-overlay" @click.self="closeConnectedDialog">
-    <div class="dialog">
-      <div class="dialog-title-row">
-        <div class="warning-icon" aria-hidden="true">!</div>
-        <h2>Connection Status</h2>
-      </div>
-      <p>You have connection to the track controller.</p>
-      <button @click="closeConnectedDialog" class="dialog-button">OK</button>
-    </div>
-  </div>
+  <!-- Connected Dialog (disabled for now) -->
 </template>
 
 <script setup>
@@ -51,6 +41,7 @@ import CommandsPane from './components/CommandsPane.vue'
 import LogWindow from './components/LogWindow.vue'
 import TrackLayout from './components/TrackLayout.vue'
 import { api } from './services/api'
+import { getTrackSection } from './utils/trackData'
 
 const logWindowRef = ref(null)
 const showSimulationDialog = ref(false)
@@ -58,21 +49,22 @@ const showConnectedDialog = ref(false)
 
 // Sections state - shared between SectionsPane and TrackLayout
 const sections = ref(
-  Array.from({ length: 12 }, (_, i) => ({
-    id: i + 1,
-    name: '',
-    direction: 'off',
-    held: false
-  }))
+  Array.from({ length: 12 }, (_, i) => {
+    const id = i + 1
+    const sectionDef = getTrackSection(id)
+    return {
+      id,
+      name: sectionDef?.name || '',
+      direction: 'off',
+      held: false
+    }
+  })
 )
 
 const closeSimulationDialog = () => {
   showSimulationDialog.value = false
 }
 
-const closeConnectedDialog = () => {
-  showConnectedDialog.value = false
-}
 
 const checkHealth = async () => {
   if (logWindowRef.value) {
@@ -85,7 +77,6 @@ const checkHealth = async () => {
     if (logWindowRef.value) {
       logWindowRef.value.addMessage('Connected to Raspberry Pi - Running in LIVE mode')
     }
-    showConnectedDialog.value = true
   } else {
     if (logWindowRef.value) {
       logWindowRef.value.addMessage(`Connection failed: ${result.error} - Running in SIMULATION mode`)
