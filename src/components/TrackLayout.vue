@@ -44,6 +44,38 @@
           fill="none"
         />
       </g>
+
+      <!-- Render markers -->
+      <g
+        v-for="(marker, markerIndex) in section.markers"
+        :key="`marker-${section.id}-${markerIndex}`"
+        :transform="getMarkerTransform(marker)"
+      >
+        <rect
+          :x="-MARKER_SIZE / 2"
+          :y="-MARKER_SIZE / 2"
+          :width="MARKER_SIZE"
+          :height="MARKER_SIZE"
+          fill="#ffffff"
+          :stroke="getMarkerColor(section.id)"
+          :stroke-width="4"
+        />
+        <polygon
+          v-if="getTrianglePoints(section.id)"
+          :points="getTrianglePoints(section.id)"
+          :fill="getMarkerColor(section.id)"
+        />
+        <text
+          x="0"
+          y="8"
+          text-anchor="middle"
+          font-size="24"
+          font-weight="600"
+          :fill="getMarkerColor(section.id)"
+        >
+          {{ section.id }}
+        </text>
+      </g>
     </g>
   </g>
 </template>
@@ -60,6 +92,11 @@ const props = defineProps({
     default: () => []
   }
 })
+
+const MARKER_SIZE = 75
+const TRIANGLE_SIDE = 50
+const TRIANGLE_HEIGHT = (Math.sqrt(3) / 2) * TRIANGLE_SIDE
+const TRIANGLE_WIDTH = TRIANGLE_SIDE
 
 // Get track section definitions
 const trackSections = computed(() => getAllTrackSections())
@@ -82,6 +119,50 @@ function getStrokeDashArray(sectionId) {
   if (!section) return 'none'
   
   return section.held ? '5,5' : 'none'
+}
+
+function getMarkerColor(sectionId) {
+  const section = props.sectionsState?.find(s => s.id === sectionId)
+  if (!section) return '#000000'
+  return section.held ? '#ff0000' : '#000000'
+}
+
+function getMarkerTransform(marker) {
+  const x = marker.x || 0
+  const y = marker.y || 0
+  const rotation = marker.rotation || 0
+  return `translate(${x} ${y}) rotate(${rotation})`
+}
+
+function getTrianglePoints(sectionId) {
+  const section = props.sectionsState?.find(s => s.id === sectionId)
+  if (!section) return ''
+  if (section.direction === 'off') return ''
+
+  const halfSize = MARKER_SIZE / 2
+  const halfTriHeight = TRIANGLE_HEIGHT / 2
+
+  if (section.direction === 'forward') {
+    const baseX = halfSize
+    const tipX = halfSize + TRIANGLE_WIDTH
+    return [
+      `${baseX} ${-halfTriHeight}`,
+      `${baseX} ${halfTriHeight}`,
+      `${tipX} 0`
+    ].join(' ')
+  }
+
+  if (section.direction === 'backwards') {
+    const baseX = -halfSize
+    const tipX = -halfSize - TRIANGLE_WIDTH
+    return [
+      `${baseX} ${-halfTriHeight}`,
+      `${baseX} ${halfTriHeight}`,
+      `${tipX} 0`
+    ].join(' ')
+  }
+
+  return ''
 }
 
 // Get point paths

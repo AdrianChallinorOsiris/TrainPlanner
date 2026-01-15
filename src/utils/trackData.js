@@ -10,6 +10,7 @@ export class TrackSection {
     this.color = config.color || '#333333' // Default color
     this.path = config.path || null // SVG path definition (path d attribute)
     this.points = config.points || [] // Array of point definitions
+    this.markers = config.markers || [] // Array of track markers
     this.startX = config.startX || 0
     this.startY = config.startY || 0
   }
@@ -25,6 +26,17 @@ export class PointDefinition {
     this.rotation = config.rotation || 0 // Rotation in degrees (multiple of 45)
     this.x = config.x || 0 // X position (open end of entry)
     this.y = config.y || 0 // Y position (open end of entry)
+  }
+}
+
+/**
+ * Track marker definition (square with direction triangle)
+ */
+export class TrackMarker {
+  constructor(config = {}) {
+    this.x = config.x || 0
+    this.y = config.y || 0
+    this.rotation = config.rotation || 0 // degrees
   }
 }
 
@@ -56,8 +68,10 @@ export function getAllTrackSections() {
 setTrackSection(1, new TrackSection(1, {
   color: '#00008B', // Dark blue
   name: 'Outer loop',
-  path: 'M 1400 200 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 2000 l -1600 0 a 500 500 0 0 1 0 -2000 l 400 0 m 0 -10 l 0 20 m 0 -10'
-
+  path: 'M 1400 200 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 2000 l -1600 0 a 500 500 0 0 1 0 -2000 l 400 0 m 0 -10 l 0 20 m 0 -10'  ,
+  markers: [
+    new TrackMarker({ x: 15700 y: 200, rotation: 0 }),
+  ]
 }))
 
 // Initialize section 2
@@ -79,7 +93,7 @@ setTrackSection(2, new TrackSection(2, {
         rotation: 0,
         x: 200, // Entry open end
         y: 400
-      })
+      }),
     ]
   }))
 
@@ -222,7 +236,37 @@ setTrackSection(4, new TrackSection(4, {
   }))
 
   setTrackSection(11, new TrackSection(11, {
-    color: 'green',
+    color: '#9575CD',
     name: 'Inner loop - passing point',
     path: 'M 200 1700 l 68 -68 l 750 0 ',
+  }))
+
+  setTrackSection(12, new TrackSection(12, {
+    color: 'orange',
+    name: 'sidings',
+    points: [
+      new PointDefinition({
+        id: 11, 
+        handedness: 'left',
+        rotation: 225,
+        x: 1018, // Entry open end
+        y: 1550
+      }),
+      new PointDefinition({
+        id: 12, 
+        handedness: 'right',
+        rotation: 225,
+        x: 876, // Entry open end
+        y: 1410
+      }),
+      new PointDefinition({
+        id: 13, 
+        handedness: 'left',
+        rotation: 225,
+        x: 800, // Entry open end
+        y: 1480
+      })
+    ],
+    path: 'M 800 1480 l -100 -100 M 586 1403 l -400 -400 M 655 1335 l -400 -400 M 735 1268 l -400 -400 M 808 1200 l -400 -400 '
+
   }))
