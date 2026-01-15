@@ -70,7 +70,7 @@ setTrackSection(1, new TrackSection(1, {
   name: 'Outer loop',
   path: 'M 1400 200 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 2000 l -1600 0 a 500 500 0 0 1 0 -2000 l 400 0 m 0 -10 l 0 20 m 0 -10'  ,
   markers: [
-    new TrackMarker({ x: 15700 y: 200, rotation: 0 }),
+    new TrackMarker({ x: 200, y: 200, rotation: 0 }),
   ]
 }))
 

@@ -10,5 +10,6 @@ if [ -z "$MESSAGE" ]; then
 fi
 
 git add -A
+git status
 git commit -m "$MESSAGE"
 git push

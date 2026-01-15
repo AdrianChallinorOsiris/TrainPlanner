@@ -60,11 +60,17 @@
           :stroke="getMarkerColor(section.id)"
           :stroke-width="4"
         />
-        <polygon
-          v-if="getTrianglePoints(section.id)"
-          :points="getTrianglePoints(section.id)"
+        <text
+          v-if="getDirectionLabel(section.id)"
+          :x="getDirectionLabelX(section.id)"
+          y="8"
+          text-anchor="middle"
+          font-size="28"
+          font-weight="700"
           :fill="getMarkerColor(section.id)"
-        />
+        >
+          {{ getDirectionLabel(section.id) }}
+        </text>
         <text
           x="0"
           y="8"
@@ -93,9 +99,8 @@ const props = defineProps({
   }
 })
 
-const MARKER_SIZE = 50
-const TRIANGLE_WIDTH = 75
-const TRIANGLE_HEIGHT = 75
+const MARKER_SIZE = 75
+const LABEL_OFFSET = 12
 
 // Get track section definitions
 const trackSections = computed(() => getAllTrackSections())
@@ -133,35 +138,36 @@ function getMarkerTransform(marker) {
   return `translate(${x} ${y}) rotate(${rotation})`
 }
 
-function getTrianglePoints(sectionId) {
+function getDirectionLabel(sectionId) {
   const section = props.sectionsState?.find(s => s.id === sectionId)
-  if (!section) return ''
-  if (section.direction === 'off') return ''
-
-  const halfSize = MARKER_SIZE / 2
-  const halfTriHeight = TRIANGLE_HEIGHT / 2
+  if (!section || section.direction === 'off') return ''
 
   if (section.direction === 'forward') {
-    const baseX = halfSize
-    const tipX = halfSize + TRIANGLE_WIDTH
-    return [
-      `${baseX} ${-halfTriHeight}`,
-      `${baseX} ${halfTriHeight}`,
-      `${tipX} 0`
-    ].join(' ')
+    return 'F'
   }
 
   if (section.direction === 'backwards') {
-    const baseX = -halfSize
-    const tipX = -halfSize - TRIANGLE_WIDTH
-    return [
-      `${baseX} ${-halfTriHeight}`,
-      `${baseX} ${halfTriHeight}`,
-      `${tipX} 0`
-    ].join(' ')
+    return 'B'
   }
 
   return ''
+}
+
+function getDirectionLabelX(sectionId) {
+  const section = props.sectionsState?.find(s => s.id === sectionId)
+  if (!section || section.direction === 'off') return 0
+
+  const halfSize = MARKER_SIZE / 2
+
+  if (section.direction === 'forward') {
+    return halfSize - LABEL_OFFSET
+  }
+
+  if (section.direction === 'backwards') {
+    return -halfSize + LABEL_OFFSET
+  }
+
+  return 0
 }
 
 // Get point paths
