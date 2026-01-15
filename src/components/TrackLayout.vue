@@ -93,10 +93,9 @@ const props = defineProps({
   }
 })
 
-const MARKER_SIZE = 75
-const TRIANGLE_SIDE = 50
-const TRIANGLE_HEIGHT = (Math.sqrt(3) / 2) * TRIANGLE_SIDE
-const TRIANGLE_WIDTH = TRIANGLE_SIDE
+const MARKER_SIZE = 50
+const TRIANGLE_WIDTH = 75
+const TRIANGLE_HEIGHT = 75
 
 // Get track section definitions
 const trackSections = computed(() => getAllTrackSections())
