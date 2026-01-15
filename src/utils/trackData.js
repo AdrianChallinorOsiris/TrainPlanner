@@ -61,14 +61,21 @@ setTrackSection(1, new TrackSection(1, {
 // Initialize section 2
 setTrackSection(2, new TrackSection(2, {
     color: 'blue', // Dark blue
-    path: 'M 1400 400 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 1600 M 1400 2000 m 0 -10 l 0 20 m 0 -10 M 1400 1900 m -10 10 l 20 -20',
+    path: 'M 1400 400 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 1600  l -1600 0 a 500 500 0 0 1 0 -1600 ',
     points: [
       new PointDefinition({
-        id: 6, 
+        id: 1, 
         handedness: 'right',
-        rotation: 180,
-        x: 1600, // Entry open end
-        y: 2000
+        rotation: 0,
+        x: 0, // Entry open end
+        y: 400
+      }),
+      new PointDefinition({
+        id: 3, 
+        handedness: 'left',
+        rotation: 0,
+        x: 200, // Entry open end
+        y: 400
       })
     ]
   }))
@@ -78,7 +85,7 @@ setTrackSection(2, new TrackSection(2, {
 // Point 1-A: left-hand, 180° rotation, thru end at (800, 200)
 // Point 3-A: right-hand, 0° rotation, entry at (620, 200)
 setTrackSection(3, new TrackSection(3, {
-  color: 'yellow', // Yellow
+  color: 'yellow', 
   points: [
     new PointDefinition({
       id: 1, // Point 1-A (controlled by Point 1)
@@ -97,3 +104,52 @@ setTrackSection(3, new TrackSection(3, {
   ],
   path: 'M 600 200 l 200 0 M 1000 200 l 400 0 m 0 -10 l 0 20 m 0 -10' 
 }))
+
+setTrackSection(4, new TrackSection(4, {
+    color: 'lightblue', // Yellow
+    points: [
+      new PointDefinition({
+        id: 2, 
+        handedness: 'left',
+        rotation: 180,
+        x: 800, // Entry open end
+        y: 400
+      }),
+      new PointDefinition({
+        id: 3, 
+        handedness: 'right',
+        rotation: 180,
+        x: 1200, // Entry open end
+        y: 400
+      }),
+      new PointDefinition({
+        id: 4, 
+        handedness: 'right',
+        rotation: 0,
+        x: 1200, // Entry open end
+        y: 400
+      }),      
+    ],
+    path: 'M 400 400 l 200 0 m 200 0 l 200 0 m 400 0 m -10 l 0 20 m 0 -10' 
+  }))
+
+  setTrackSection(5, new TrackSection(5, {
+    color: 'lightgreen', 
+    points: [
+      new PointDefinition({
+        id: 4, 
+        handedness: 'right',
+        rotation: 180,
+        x: 1600, // Entry open end
+        y: 600
+      }),
+      new PointDefinition({
+        id: 6, 
+        handedness: 'right',
+        rotation: 180,
+        x: 1600, // Entry open end
+        y: 1800
+      })
+    ],
+    path: 'M 1600 600 a 500 500 0 0 1 0 1200 '
+  }))
