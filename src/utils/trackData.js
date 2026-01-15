@@ -130,7 +130,7 @@ setTrackSection(4, new TrackSection(4, {
         y: 400
       }),      
     ],
-    path: 'M 400 400 l 200 0 m 200 0 l 200 0 m 400 0 m -10 l 0 20 m 0 -10' 
+    path: 'M 400 400 l 200 0 m 200 0 l 200 0 m 400 0' 
   }))
 
   setTrackSection(5, new TrackSection(5, {
@@ -152,4 +152,54 @@ setTrackSection(4, new TrackSection(4, {
       })
     ],
     path: 'M 1600 600 a 500 500 0 0 1 0 1200 '
+  }))
+
+  setTrackSection(6, new TrackSection(6, {
+    color: 'crimson', 
+    path: 'M 600 600 l 800 0 '
+  }))
+
+  setTrackSection(7, new TrackSection(7, {
+    color: 'purple', 
+    path: 'M 1400 1800 l -1200 0 '
+  }))
+
+  setTrackSection(8, new TrackSection(8, {
+    color: 'cyan', 
+    points: [
+      new PointDefinition({
+        id: 7, 
+        handedness: 'left',
+        rotation: 225,
+        x: 1400, // Entry open end
+        y: 1700
+      }), 
+      new PointDefinition({
+        id: 8, 
+        handedness: 'right',
+        rotation: 180,
+        x: 1200, // Entry open end
+        y: 1631
+      })
+    ],
+  }))
+  setTrackSection(9, new TrackSection(8, {
+    color: 'cyan',
+    path: 'M 0 1800 a 500 500 0 0 1 0 -1200 l 400 0 ',
+    points: [
+      new PointDefinition({
+        id: 9, 
+        handedness: 'left',
+        rotation: 0,
+        x: 0, // Entry open end
+        y: 1800
+      }), 
+      new PointDefinition({
+        id: 10, 
+        handedness: 'left',
+        rotation: 0,
+        x: 400, // Entry open end
+        y: 600
+      })
+    ],
   }))
