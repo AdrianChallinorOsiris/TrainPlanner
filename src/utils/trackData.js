@@ -94,7 +94,10 @@ setTrackSection(2, new TrackSection(2, {
         x: 200, // Entry open end
         y: 400
       }),
-    ]
+    ], 
+    markers: [
+        new TrackMarker({ x: 200, y: 400, rotation: 0 }),
+      ]
   }))
 
 // Initialize section 3
@@ -120,7 +123,10 @@ setTrackSection(3, new TrackSection(3, {
       y: 200
     }),
   ],
-  path: 'M 600 200 l 200 0 M 1000 200 l 400 0 m 0 -10 l 0 20 m 0 -10' 
+  path: 'M 600 200 l 200 0 M 1000 200 l 400 0 m 0 -10 l 0 20 m 0 -10' ,
+  markers: [
+    new TrackMarker({ x:800, y: 200, rotation: 0 }),
+  ]
 }))
 
 setTrackSection(4, new TrackSection(4, {
@@ -149,7 +155,10 @@ setTrackSection(4, new TrackSection(4, {
         y: 400
       }),      
     ],
-    path: 'M 400 400 l 200 0 m 200 0 l 200 0 m 400 0' 
+    path: 'M 400 400 l 200 0 m 200 0 l 200 0 m 400 0' ,
+    markers: [
+        new TrackMarker({ x:800, y: 400, rotation: 0 }),
+      ]
   }))
 
   setTrackSection(5, new TrackSection(5, {
@@ -171,19 +180,28 @@ setTrackSection(4, new TrackSection(4, {
         y: 1800
       })
     ],
-    path: 'M 1600 600 a 500 500 0 0 1 0 1200 '
+    path: 'M 1600 600 a 500 500 0 0 1 0 1200 ',
+    markers: [
+      new TrackMarker({ x:1600, y: 600, rotation: 0 }),
+    ]
   }))
 
   setTrackSection(6, new TrackSection(6, {
-    color: 'crimson', 
+    color: 'green', 
     name: 'Inner loop - Station',
-    path: 'M 600 600 l 800 0 '
+    path: 'M 600 600 l 800 0 ',
+    markers: [
+        new TrackMarker({ x:800, y: 600, rotation: 0 }),
+      ]
   }))
 
   setTrackSection(7, new TrackSection(7, {
     color: 'purple', 
     name: 'Inner loop - part 2',
-    path: 'M 1400 1800 l -1200 0 '
+    path: 'M 1400 1800 l -1200 0 ',
+    markers: [
+        new TrackMarker({ x:800, y: 1800, rotation: 0 }),
+      ]
   }))
 
   setTrackSection(8, new TrackSection(8, {
@@ -205,6 +223,9 @@ setTrackSection(4, new TrackSection(4, {
         y: 1631
       })
     ],
+    markers: [
+      new TrackMarker({ x:1350, y: 1650, rotation: 0 }),
+    ]
   }))
 
   setTrackSection(9, new TrackSection(9, {
@@ -227,18 +248,27 @@ setTrackSection(4, new TrackSection(4, {
         y: 600
       })
     ],
+    markers: [
+        new TrackMarker({ x:0, y: 600, rotation: 0 }),
+      ]
   }))
 
   setTrackSection(10, new TrackSection(10, {
     color: 'red',
     name: 'Reversing line',
     path: 'M 200 500 l 200 200 l 853 853 ',
+    markers: [
+        new TrackMarker({ x:400, y: 700, rotation: 0 }),
+      ]
   }))
 
   setTrackSection(11, new TrackSection(11, {
     color: '#9575CD',
     name: 'Inner loop - passing point',
     path: 'M 200 1700 l 68 -68 l 750 0 ',
+    markers: [
+        new TrackMarker({ x:800, y: 1640, rotation: 0 }),
+      ]
   }))
 
   setTrackSection(12, new TrackSection(12, {
@@ -267,6 +297,8 @@ setTrackSection(4, new TrackSection(4, {
         y: 1480
       })
     ],
-    path: 'M 800 1480 l -100 -100 M 586 1403 l -400 -400 M 655 1335 l -400 -400 M 735 1268 l -400 -400 M 808 1200 l -400 -400 '
-
+    path: 'M 800 1480 l -100 -100 M 586 1403 l -400 -400 M 655 1335 l -400 -400 M 735 1268 l -400 -400 M 808 1200 l -400 -400 ',
+    markers: [
+        new TrackMarker({ x:800, y: 1480, rotation: 0 }),
+      ]
   }))
