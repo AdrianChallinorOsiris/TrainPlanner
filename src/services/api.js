@@ -65,5 +65,37 @@ export const api = {
       throw new Error(`HTTP ${response.status}`)
     }
     return { success: true }
+  },
+  async setPointDirection(groupId, direction) {
+    const response = await fetch(
+      `${API_BASE_URL}/points/${groupId}?direction=${encodeURIComponent(direction)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return { success: true }
+  },
+  async setTrackSpeed(trackId, speed, direction) {
+    const response = await fetch(
+      `${API_BASE_URL}/tracks/${trackId}/speed?speed=${encodeURIComponent(
+        speed
+      )}&direction=${encodeURIComponent(direction)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return { success: true }
   }
 }

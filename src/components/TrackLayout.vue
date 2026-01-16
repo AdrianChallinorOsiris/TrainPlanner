@@ -1,5 +1,5 @@
 <template>
-  <g class="track-layout">
+  <g class="track-layout" transform="translate(300 0)">
     <!-- Render track sections -->
     <g
       v-for="section in trackSections"

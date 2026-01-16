@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, provide } from 'vue'
+import { ref, onMounted, provide, watch } from 'vue'
 import SectionsPane from './components/SectionsPane.vue'
 import PointsPane from './components/PointsPane.vue'
 import SensorsPane from './components/SensorsPane.vue'
@@ -72,6 +72,7 @@ const sections = ref(
     }
   })
 )
+const previousSections = ref(new Map())
 
 // Point groups state - shared between PointsPane and TrackLayout
 const pointGroups = ref(
@@ -80,6 +81,7 @@ const pointGroups = ref(
     type: 'thru'
   }))
 )
+const previousPointGroups = ref(new Map())
 
 // Sensors state - shared between SensorsPane and TrackLayout
 const sensors = ref(
@@ -171,6 +173,110 @@ const checkHealth = async () => {
   }
 }
 
+watch(
+  pointGroups,
+  async (newGroups) => {
+    if (!liveMode.value) {
+      return
+    }
+    const prevMap = previousPointGroups.value
+    const nextMap = new Map()
+    for (const group of newGroups) {
+      nextMap.set(group.id, group.type)
+      const prevType = prevMap.get(group.id)
+      if (prevType && prevType === group.type) {
+        continue
+      }
+      if (!prevType) {
+        continue
+      }
+      const direction = group.type === 'thru' ? 'THRU' : 'BRANCH'
+      try {
+        if (logWindowRef.value) {
+          logWindowRef.value.addMessage(
+            `Point group ${group.id} set to ${direction}`
+          )
+        }
+        await api.setPointDirection(group.id, direction)
+      } catch (error) {
+        if (logWindowRef.value) {
+          logWindowRef.value.addMessage(
+            `Point group ${group.id} update failed: ${error.message}`
+          )
+        }
+      }
+    }
+    previousPointGroups.value = nextMap
+  },
+  { deep: true }
+)
+
+watch(liveMode, (isLive) => {
+  if (!isLive) {
+    return
+  }
+  const nextMap = new Map()
+  for (const group of pointGroups.value) {
+    nextMap.set(group.id, group.type)
+  }
+  previousPointGroups.value = nextMap
+})
+
+watch(
+  sections,
+  async (newSections) => {
+    if (!liveMode.value) {
+      return
+    }
+    const prevMap = previousSections.value
+    const nextMap = new Map()
+    for (const section of newSections) {
+      nextMap.set(section.id, section.direction)
+      const prevDirection = prevMap.get(section.id)
+      if (prevDirection && prevDirection === section.direction) {
+        continue
+      }
+      if (!prevDirection) {
+        continue
+      }
+      const direction =
+        section.direction === 'forward'
+          ? 'FWD'
+          : section.direction === 'backwards'
+            ? 'BCK'
+            : 'OFF'
+      const speed = 100
+      try {
+        if (logWindowRef.value) {
+          logWindowRef.value.addMessage(
+            `Track ${section.id} set to ${direction} speed ${speed}`
+          )
+        }
+        await api.setTrackSpeed(section.id, speed, direction)
+      } catch (error) {
+        if (logWindowRef.value) {
+          logWindowRef.value.addMessage(
+            `Track ${section.id} update failed: ${error.message}`
+          )
+        }
+      }
+    }
+    previousSections.value = nextMap
+  },
+  { deep: true }
+)
+
+watch(liveMode, (isLive) => {
+  if (!isLive) {
+    return
+  }
+  const nextMap = new Map()
+  for (const section of sections.value) {
+    nextMap.set(section.id, section.direction)
+  }
+  previousSections.value = nextMap
+})
+
 provide('liveMode', liveMode)
 
 onMounted(() => {
@@ -231,6 +337,8 @@ onMounted(() => {
   border-bottom: 1px solid #ddd;
   background-color: #f9f9f9;
   position: relative;
+  width: calc(100% - 100px);
+  align-self: flex-start;
 }
 
 .svg-label {
