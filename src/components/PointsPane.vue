@@ -1,15 +1,15 @@
 <template>
   <div class="points-pane">
-    <h2>Points</h2>
+    <h2>Point Groups</h2>
     <div class="points-list">
       <div
-        v-for="point in points"
-        :key="point.id"
+        v-for="group in pointGroups"
+        :key="group.id"
         class="point-item"
       >
         <div class="point-header">
-          <span class="point-id">{{ point.id }}</span>
-          <select v-model="point.type">
+          <span class="point-id">{{ group.id }}</span>
+          <select v-model="group.type">
             <option value="branch">Branch</option>
             <option value="thru">Thru</option>
           </select>
@@ -20,14 +20,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
-const points = ref(
-  Array.from({ length: 12 }, (_, i) => ({
-    id: i + 1,
-    type: 'thru'
-  }))
-)
+defineProps({
+  pointGroups: {
+    type: Array,
+    required: true
+  }
+})
 </script>
 
 <style scoped>

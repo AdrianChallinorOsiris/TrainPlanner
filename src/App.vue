@@ -4,7 +4,11 @@
       <div class="svg-pane">
         <div class="svg-label">Layout</div>
         <svg viewBox="0 0 2000 2400" width="100%" height="100%">
-          <TrackLayout :sections-state="sections" :sensors-state="sensors" />
+          <TrackLayout
+            :sections-state="sections"
+            :sensors-state="sensors"
+            :point-groups-state="pointGroups"
+          />
         </svg>
       </div>
       <LogWindow ref="logWindowRef" />
@@ -12,7 +16,7 @@
     <div class="right-container">
       <div class="panes-container">
         <SectionsPane :sections="sections" />
-        <PointsPane />
+        <PointsPane :point-groups="pointGroups" />
         <SensorsPane :sensors="sensors" />
       </div>
       <CommandsPane />
@@ -59,6 +63,14 @@ const sections = ref(
       held: false
     }
   })
+)
+
+// Point groups state - shared between PointsPane and TrackLayout
+const pointGroups = ref(
+  Array.from({ length: 12 }, (_, i) => ({
+    id: i + 1,
+    type: 'thru'
+  }))
 )
 
 // Sensors state - shared between SensorsPane and TrackLayout

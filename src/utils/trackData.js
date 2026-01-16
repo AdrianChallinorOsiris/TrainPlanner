@@ -12,6 +12,7 @@ export class TrackSection {
     this.points = config.points || [] // Array of point definitions
     this.markers = config.markers || [] // Array of track markers
     this.sensors = config.sensors || [] // Array of sensor markers
+    this.pointGroupMarkers = config.pointGroupMarkers || [] // Array of point group markers
     this.startX = config.startX || 0
     this.startY = config.startY || 0
   }
@@ -23,6 +24,7 @@ export class TrackSection {
 export class PointDefinition {
   constructor(config = {}) {
     this.id = config.id // Point ID (1-12)
+    this.groupId = config.groupId // Point Group ID
     this.handedness = config.handedness || 'left' // 'left' or 'right'
     this.rotation = config.rotation || 0 // Rotation in degrees (multiple of 45)
     this.x = config.x || 0 // X position (open end of entry)
@@ -47,6 +49,17 @@ export class TrackMarker {
 export class SensorMarker {
   constructor(config = {}) {
     this.id = config.id // Sensor ID (1-16)
+    this.x = config.x || 0
+    this.y = config.y || 0
+  }
+}
+
+/**
+ * Point group marker definition (diamond with group number)
+ */
+export class PointGroupMarker {
+  constructor(config = {}) {
+    this.groupId = config.groupId // Point Group ID
     this.x = config.x || 0
     this.y = config.y || 0
   }
@@ -98,6 +111,7 @@ setTrackSection(2, new TrackSection(2, {
     points: [
       new PointDefinition({
         id: 1, 
+        groupId: 5,
         handedness: 'right',
         rotation: 0,
         x: 0, // Entry open end
@@ -105,6 +119,7 @@ setTrackSection(2, new TrackSection(2, {
       }),
       new PointDefinition({
         id: 3, 
+        groupId: 1,
         handedness: 'left',
         rotation: 0,
         x: 200, // Entry open end
@@ -116,7 +131,6 @@ setTrackSection(2, new TrackSection(2, {
     ],
     sensors: [
         new SensorMarker({ id: 2, x: 900, y: 2000}),
-
     ]
   }))
 
@@ -125,11 +139,12 @@ setTrackSection(2, new TrackSection(2, {
 // Point 1-A: left-hand, 180° rotation, thru end at (800, 200)
 // Point 3-A: right-hand, 0° rotation, entry at (620, 200)
 setTrackSection(3, new TrackSection(3, {
-  color: 'yellow', 
+  color: 'brown', 
   name: 'Outer loop - Platform 1',
   points: [
     new PointDefinition({
       id: 1, // Point 1-A (controlled by Point 1)
+      groupId: 1,
       handedness: 'left',
       rotation: 180,
       x: 600, // Entry open end
@@ -137,6 +152,7 @@ setTrackSection(3, new TrackSection(3, {
     }),
     new PointDefinition({
       id: 3, // Point 3-A (controlled by Point 3)
+      groupId: 3,
       handedness: 'right',
       rotation: 0,
       x: 800, // Entry open end
@@ -158,6 +174,7 @@ setTrackSection(4, new TrackSection(4, {
     points: [
       new PointDefinition({
         id: 2, 
+        groupId: 2,
         handedness: 'left',
         rotation: 180,
         x: 800, // Entry open end
@@ -165,6 +182,7 @@ setTrackSection(4, new TrackSection(4, {
       }),
       new PointDefinition({
         id: 3, 
+        groupId: 3,
         handedness: 'right',
         rotation: 180,
         x: 1200, // Entry open end
@@ -172,6 +190,7 @@ setTrackSection(4, new TrackSection(4, {
       }),
       new PointDefinition({
         id: 4, 
+        groupId: 4,
         handedness: 'right',
         rotation: 0,
         x: 1200, // Entry open end
@@ -183,7 +202,7 @@ setTrackSection(4, new TrackSection(4, {
         new TrackMarker({ x:800, y: 400, rotation: 0 }),
     ],
     sensors: [
-        new SensorMarker({ id: 4, x: 500, y: 400}),
+        new SensorMarker({ id: 4, x: 900, y: 400}),
     ]
   }))
 
@@ -193,6 +212,7 @@ setTrackSection(4, new TrackSection(4, {
     points: [
       new PointDefinition({
         id: 4, 
+        groupId: 4,
         handedness: 'right',
         rotation: 180,
         x: 1600, // Entry open end
@@ -200,6 +220,7 @@ setTrackSection(4, new TrackSection(4, {
       }),
       new PointDefinition({
         id: 6, 
+        groupId: 6,
         handedness: 'right',
         rotation: 180,
         x: 1600, // Entry open end
@@ -223,7 +244,7 @@ setTrackSection(4, new TrackSection(4, {
         new TrackMarker({ x:800, y: 600, rotation: 0 }),
       ],
     sensors: [
-        new SensorMarker({ id: 12, x: 1000, y: 600}),
+        new SensorMarker({ id: 6, x: 900, y: 600}),
     ]
   }))
 
@@ -235,7 +256,7 @@ setTrackSection(4, new TrackSection(4, {
         new TrackMarker({ x:800, y: 1800, rotation: 0 }),
     ],
     sensors: [
-        new SensorMarker({ id: 6, x: 1000, y: 1800}),
+        new SensorMarker({ id: 7, x: 900, y: 1800}),
     ]
   }))
 
@@ -245,6 +266,7 @@ setTrackSection(4, new TrackSection(4, {
     points: [
       new PointDefinition({
         id: 7, 
+        groupId: 7,
         handedness: 'left',
         rotation: 225,
         x: 1400, // Entry open end
@@ -252,6 +274,7 @@ setTrackSection(4, new TrackSection(4, {
       }), 
       new PointDefinition({
         id: 8, 
+        groupId: 8,
         handedness: 'right',
         rotation: 180,
         x: 1200, // Entry open end
@@ -262,7 +285,7 @@ setTrackSection(4, new TrackSection(4, {
       new TrackMarker({ x:1350, y: 1650, rotation: 0 }),
     ],
     sensors: [
-        new SensorMarker({ id: 7, x: 1200, y: 1631}),
+        new SensorMarker({ id: 8, x: 1200, y: 1631}),
     ]
   }))
 
@@ -273,6 +296,7 @@ setTrackSection(4, new TrackSection(4, {
     points: [
       new PointDefinition({
         id: 9, 
+        groupId: 9,
         handedness: 'left',
         rotation: 0,
         x: 0, // Entry open end
@@ -280,6 +304,7 @@ setTrackSection(4, new TrackSection(4, {
       }), 
       new PointDefinition({
         id: 10, 
+        groupId: 2,
         handedness: 'left',
         rotation: 0,
         x: 400, // Entry open end
@@ -290,7 +315,7 @@ setTrackSection(4, new TrackSection(4, {
         new TrackMarker({ x:0, y: 600, rotation: 0 }),
     ],
     sensors: [
-        new SensorMarker({ id: 8, x: -600, y: 1100}),
+        new SensorMarker({ id: 9, x: -600, y: 1100}),
     ]
   }))
 
@@ -302,7 +327,7 @@ setTrackSection(4, new TrackSection(4, {
         new TrackMarker({ x:400, y: 700, rotation: 0 }),
     ],
     sensors: [
-        new SensorMarker({ id: 9, x: 800, y: 1100}),
+        new SensorMarker({ id: 10, x: 800, y: 1100}),
     ]
   }))
 
@@ -314,7 +339,7 @@ setTrackSection(4, new TrackSection(4, {
         new TrackMarker({ x:800, y: 1640, rotation: 0 }),
       ],
     sensors: [
-        new SensorMarker({ id: 10, x: 900, y: 1628}),
+        new SensorMarker({ id: 11, x: 900, y: 1628}),
     ]
   }))
 
@@ -324,6 +349,7 @@ setTrackSection(4, new TrackSection(4, {
     points: [
       new PointDefinition({
         id: 11, 
+        groupId: 10,
         handedness: 'left',
         rotation: 225,
         x: 1018, // Entry open end
@@ -331,6 +357,7 @@ setTrackSection(4, new TrackSection(4, {
       }),
       new PointDefinition({
         id: 12, 
+        groupId: 12,
         handedness: 'right',
         rotation: 225,
         x: 876, // Entry open end
@@ -338,6 +365,7 @@ setTrackSection(4, new TrackSection(4, {
       }),
       new PointDefinition({
         id: 13, 
+        groupId: 11,
         handedness: 'left',
         rotation: 225,
         x: 800, // Entry open end
@@ -349,9 +377,23 @@ setTrackSection(4, new TrackSection(4, {
         new TrackMarker({ x:800, y: 1480, rotation: 0 }),
     ],
     sensors: [
-        new SensorMarker({ id: 11, x: 320, y: 1150}),
-        new SensorMarker({ id: 12, x: 400, y: 1080}),
-        new SensorMarker({ id: 13, x: 480, y: 1000}),
-        new SensorMarker({ id: 14, x: 560, y: 950}),
+        new SensorMarker({ id: 12, x: 320, y: 1150}),
+        new SensorMarker({ id: 13, x: 400, y: 1080}),
+        new SensorMarker({ id: 14, x: 480, y: 1000}),
+        new SensorMarker({ id: 15, x: 560, y: 950}),
+    ],
+    pointGroupMarkers: [
+        new PointGroupMarker({ groupId: 1, x: 400, y: 300 }),
+        new PointGroupMarker({ groupId: 2, x: 600, y: 500 }),
+        new PointGroupMarker({ groupId: 3, x: 1000, y: 300 }),
+        new PointGroupMarker({ groupId: 4, x: 1400, y: 500 }),
+        new PointGroupMarker({ groupId: 5, x: 100, y: 400 }),
+        new PointGroupMarker({ groupId: 6, x: 1500, y: 1800 }),
+        new PointGroupMarker({ groupId: 7, x: 1250, y: 1600 }),
+        new PointGroupMarker({ groupId: 8, x: 1000, y: 1600 }),
+        new PointGroupMarker({ groupId: 9, x: 100, y: 1800 }),
+        new PointGroupMarker({ groupId: 10, x: 930, y: 1470 }),
+        new PointGroupMarker({ groupId: 11, x: 700, y: 1400 }),
+        new PointGroupMarker({ groupId: 12, x: 800, y: 1300 }),
     ]
   }))

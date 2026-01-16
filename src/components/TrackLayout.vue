@@ -34,6 +34,7 @@
           :stroke="section.color"
           :stroke-width="getStrokeWidth(section.id)"
           :stroke-dasharray="getStrokeDashArray(section.id)"
+          :opacity="getPointSegmentOpacity(pointDef.groupId, 'thru')"
           fill="none"
         />
         <path
@@ -41,6 +42,7 @@
           :stroke="section.color"
           :stroke-width="getStrokeWidth(section.id)"
           :stroke-dasharray="getStrokeDashArray(section.id)"
+          :opacity="getPointSegmentOpacity(pointDef.groupId, 'branch')"
           fill="none"
         />
       </g>
@@ -108,6 +110,30 @@
           {{ sensor.id }}
         </text>
       </g>
+
+      <!-- Render point group markers -->
+      <g
+        v-for="(marker, markerIndex) in section.pointGroupMarkers"
+        :key="`point-group-marker-${section.id}-${markerIndex}`"
+        :transform="getPointGroupMarkerTransform(marker)"
+      >
+        <polygon
+          :points="getDiamondPoints(POINT_GROUP_MARKER_SIZE)"
+          fill="#ffffff"
+          :stroke="POINT_GROUP_MARKER_STROKE"
+          :stroke-width="POINT_GROUP_MARKER_STROKE_WIDTH"
+        />
+        <text
+          x="0"
+          y="8"
+          text-anchor="middle"
+          font-size="22"
+          font-weight="700"
+          fill="#000000"
+        >
+          {{ marker.groupId }}
+        </text>
+      </g>
     </g>
   </g>
 </template>
@@ -126,6 +152,10 @@ const props = defineProps({
   sensorsState: {
     type: Array,
     default: () => []
+  },
+  pointGroupsState: {
+    type: Array,
+    default: () => []
   }
 })
 
@@ -134,6 +164,9 @@ const LABEL_OFFSET = 12
 const SENSOR_RADIUS = 22
 const SENSOR_STROKE_WIDTH = 3
 const SENSOR_STROKE_COLOR = '#ff0000'
+const POINT_GROUP_MARKER_SIZE = 40
+const POINT_GROUP_MARKER_STROKE = '#000000'
+const POINT_GROUP_MARKER_STROKE_WIDTH = 3
 
 // Get track section definitions
 const trackSections = computed(() => getAllTrackSections())
@@ -201,6 +234,35 @@ function getDirectionLabelX(sectionId) {
   }
 
   return 0
+}
+
+function getPointGroupType(groupId) {
+  const group = props.pointGroupsState?.find(g => g.id === groupId)
+  return group?.type || 'thru'
+}
+
+function getPointSegmentOpacity(groupId, segmentType) {
+  const activeType = getPointGroupType(groupId)
+  if (activeType === segmentType) {
+    return 1
+  }
+  return 0.3
+}
+
+function getPointGroupMarkerTransform(marker) {
+  const x = marker.x || 0
+  const y = marker.y || 0
+  return `translate(${x} ${y})`
+}
+
+function getDiamondPoints(size) {
+  const half = size / 2
+  return [
+    `0 ${-half}`,
+    `${half} 0`,
+    `0 ${half}`,
+    `${-half} 0`
+  ].join(' ')
 }
 
 function getSensorTransform(sensor) {
