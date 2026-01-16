@@ -1,5 +1,11 @@
 <template>
-  <div class="app-container">
+  <div class="app-shell">
+    <div class="button-bar">
+      <button class="bar-button" @click="handleReset">Reset</button>
+      <button class="bar-button" @click="handleAllStop">All Stop</button>
+      <button class="bar-button" @click="handleLedTest">Led Test</button>
+    </div>
+    <div class="app-container">
     <div class="left-container">
       <div class="svg-pane">
         <div class="svg-label">Layout</div>
@@ -21,6 +27,7 @@
       </div>
       <CommandsPane />
     </div>
+    </div>
   </div>
   
   <!-- Simulation Mode Dialog -->
@@ -37,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, provide } from 'vue'
 import SectionsPane from './components/SectionsPane.vue'
 import PointsPane from './components/PointsPane.vue'
 import SensorsPane from './components/SensorsPane.vue'
@@ -50,6 +57,7 @@ import { getTrackSection } from './utils/trackData'
 const logWindowRef = ref(null)
 const showSimulationDialog = ref(false)
 const showConnectedDialog = ref(false)
+const liveMode = ref(false)
 
 // Sections state - shared between SectionsPane and TrackLayout
 const sections = ref(
@@ -85,6 +93,63 @@ const closeSimulationDialog = () => {
   showSimulationDialog.value = false
 }
 
+const handleReset = async () => {
+  if (!liveMode.value) {
+    return
+  }
+  try {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage('Reset button pressed')
+    }
+    await api.reset()
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage('Reset command sent')
+    }
+  } catch (error) {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage(`Reset failed: ${error.message}`)
+    }
+  }
+}
+
+const handleAllStop = async () => {
+  if (!liveMode.value) {
+    return
+  }
+  try {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage('All Stop button pressed')
+    }
+    await api.allStop()
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage('All Stop command sent')
+    }
+  } catch (error) {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage(`All Stop failed: ${error.message}`)
+    }
+  }
+}
+
+const handleLedTest = async () => {
+  if (!liveMode.value) {
+    return
+  }
+  try {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage('LED Test button pressed')
+    }
+    await api.ledTest()
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage('LED test command sent')
+    }
+  } catch (error) {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage(`LED test failed: ${error.message}`)
+    }
+  }
+}
+
 
 const checkHealth = async () => {
   if (logWindowRef.value) {
@@ -92,6 +157,7 @@ const checkHealth = async () => {
   }
   
   const result = await api.healthCheck()
+  liveMode.value = result.success
   
   if (result.success) {
     if (logWindowRef.value) {
@@ -105,16 +171,49 @@ const checkHealth = async () => {
   }
 }
 
+provide('liveMode', liveMode)
+
 onMounted(() => {
   checkHealth()
 })
 </script>
 
 <style scoped>
-.app-container {
+.app-shell {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100vw;
+}
+
+.button-bar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  gap: 10px;
+  border-bottom: 1px solid #ddd;
+  background-color: #f5f5f5;
+}
+
+.bar-button {
+  padding: 0.35rem 0.9rem;
+  border: 1px solid #ccc;
+  background-color: #ffffff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.bar-button:hover {
+  background-color: #f0f0f0;
+}
+
+.app-container {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 
 .left-container {

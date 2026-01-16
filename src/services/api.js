@@ -29,5 +29,41 @@ export const api = {
       }
       return { success: false, error: error.message }
     }
+  },
+  async reset() {
+    const response = await fetch(`${API_BASE_URL}/reset`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return { success: true }
+  },
+  async allStop() {
+    const response = await fetch(`${API_BASE_URL}/tracks/allstop`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return { success: true }
+  },
+  async ledTest() {
+    const response = await fetch(`${API_BASE_URL}/leds/test`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return { success: true }
   }
 }
