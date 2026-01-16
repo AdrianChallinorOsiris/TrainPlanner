@@ -21,17 +21,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
-const sensors = ref(
-  Array.from({ length: 12 }, (_, i) => ({
-    id: i + 1,
-    set: false
-  }))
-)
+const props = defineProps({
+  sensors: {
+    type: Array,
+    required: true
+  }
+})
 
 const toggleSensor = (id) => {
-  const sensor = sensors.value.find(s => s.id === id)
+  const sensor = props.sensors.find(s => s.id === id)
   if (sensor) {
     sensor.set = !sensor.set
   }
@@ -58,13 +56,15 @@ const toggleSensor = (id) => {
   flex: 1;
   overflow-y: auto;
   padding: 0 1rem 1rem 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
 .sensor-item {
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 0.75rem;
-  margin-bottom: 0.75rem;
   background-color: white;
   display: flex;
   align-items: center;

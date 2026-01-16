@@ -11,6 +11,7 @@ export class TrackSection {
     this.path = config.path || null // SVG path definition (path d attribute)
     this.points = config.points || [] // Array of point definitions
     this.markers = config.markers || [] // Array of track markers
+    this.sensors = config.sensors || [] // Array of sensor markers
     this.startX = config.startX || 0
     this.startY = config.startY || 0
   }
@@ -37,6 +38,17 @@ export class TrackMarker {
     this.x = config.x || 0
     this.y = config.y || 0
     this.rotation = config.rotation || 0 // degrees
+  }
+}
+
+/**
+ * Sensor marker definition (circle with sensor number)
+ */
+export class SensorMarker {
+  constructor(config = {}) {
+    this.id = config.id // Sensor ID (1-16)
+    this.x = config.x || 0
+    this.y = config.y || 0
   }
 }
 
@@ -71,6 +83,10 @@ setTrackSection(1, new TrackSection(1, {
   path: 'M 1400 200 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 2000 l -1600 0 a 500 500 0 0 1 0 -2000 l 400 0 m 0 -10 l 0 20 m 0 -10'  ,
   markers: [
     new TrackMarker({ x: 200, y: 200, rotation: 0 }),
+  ],
+  sensors: [
+    new SensorMarker({ id: 1, x: 900, y: 2200}),
+
   ]
 }))
 
@@ -97,7 +113,11 @@ setTrackSection(2, new TrackSection(2, {
     ], 
     markers: [
         new TrackMarker({ x: 200, y: 400, rotation: 0 }),
-      ]
+    ],
+    sensors: [
+        new SensorMarker({ id: 2, x: 900, y: 2000}),
+
+    ]
   }))
 
 // Initialize section 3
@@ -126,7 +146,10 @@ setTrackSection(3, new TrackSection(3, {
   path: 'M 600 200 l 200 0 M 1000 200 l 400 0 m 0 -10 l 0 20 m 0 -10' ,
   markers: [
     new TrackMarker({ x:800, y: 200, rotation: 0 }),
-  ]
+  ],
+  sensors: [
+    new SensorMarker({ id:3, x: 700, y: 200}),
+]
 }))
 
 setTrackSection(4, new TrackSection(4, {
@@ -158,7 +181,10 @@ setTrackSection(4, new TrackSection(4, {
     path: 'M 400 400 l 200 0 m 200 0 l 200 0 m 400 0' ,
     markers: [
         new TrackMarker({ x:800, y: 400, rotation: 0 }),
-      ]
+    ],
+    sensors: [
+        new SensorMarker({ id: 4, x: 500, y: 400}),
+    ]
   }))
 
   setTrackSection(5, new TrackSection(5, {
@@ -183,6 +209,9 @@ setTrackSection(4, new TrackSection(4, {
     path: 'M 1600 600 a 500 500 0 0 1 0 1200 ',
     markers: [
       new TrackMarker({ x:1600, y: 600, rotation: 0 }),
+    ],
+    sensors: [
+        new SensorMarker({ id: 5, x: 2200, y: 1100}),
     ]
   }))
 
@@ -192,7 +221,10 @@ setTrackSection(4, new TrackSection(4, {
     path: 'M 600 600 l 800 0 ',
     markers: [
         new TrackMarker({ x:800, y: 600, rotation: 0 }),
-      ]
+      ],
+    sensors: [
+        new SensorMarker({ id: 12, x: 1000, y: 600}),
+    ]
   }))
 
   setTrackSection(7, new TrackSection(7, {
@@ -201,7 +233,10 @@ setTrackSection(4, new TrackSection(4, {
     path: 'M 1400 1800 l -1200 0 ',
     markers: [
         new TrackMarker({ x:800, y: 1800, rotation: 0 }),
-      ]
+    ],
+    sensors: [
+        new SensorMarker({ id: 6, x: 1000, y: 1800}),
+    ]
   }))
 
   setTrackSection(8, new TrackSection(8, {
@@ -225,6 +260,9 @@ setTrackSection(4, new TrackSection(4, {
     ],
     markers: [
       new TrackMarker({ x:1350, y: 1650, rotation: 0 }),
+    ],
+    sensors: [
+        new SensorMarker({ id: 7, x: 1200, y: 1631}),
     ]
   }))
 
@@ -250,7 +288,10 @@ setTrackSection(4, new TrackSection(4, {
     ],
     markers: [
         new TrackMarker({ x:0, y: 600, rotation: 0 }),
-      ]
+    ],
+    sensors: [
+        new SensorMarker({ id: 8, x: -600, y: 1100}),
+    ]
   }))
 
   setTrackSection(10, new TrackSection(10, {
@@ -259,7 +300,10 @@ setTrackSection(4, new TrackSection(4, {
     path: 'M 200 500 l 200 200 l 853 853 ',
     markers: [
         new TrackMarker({ x:400, y: 700, rotation: 0 }),
-      ]
+    ],
+    sensors: [
+        new SensorMarker({ id: 9, x: 800, y: 1100}),
+    ]
   }))
 
   setTrackSection(11, new TrackSection(11, {
@@ -268,7 +312,10 @@ setTrackSection(4, new TrackSection(4, {
     path: 'M 200 1700 l 68 -68 l 750 0 ',
     markers: [
         new TrackMarker({ x:800, y: 1640, rotation: 0 }),
-      ]
+      ],
+    sensors: [
+        new SensorMarker({ id: 10, x: 900, y: 1628}),
+    ]
   }))
 
   setTrackSection(12, new TrackSection(12, {
@@ -300,5 +347,11 @@ setTrackSection(4, new TrackSection(4, {
     path: 'M 800 1480 l -100 -100 M 586 1403 l -400 -400 M 655 1335 l -400 -400 M 735 1268 l -400 -400 M 808 1200 l -400 -400 ',
     markers: [
         new TrackMarker({ x:800, y: 1480, rotation: 0 }),
-      ]
+    ],
+    sensors: [
+        new SensorMarker({ id: 11, x: 320, y: 1150}),
+        new SensorMarker({ id: 12, x: 400, y: 1080}),
+        new SensorMarker({ id: 13, x: 480, y: 1000}),
+        new SensorMarker({ id: 14, x: 560, y: 950}),
+    ]
   }))

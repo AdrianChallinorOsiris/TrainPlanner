@@ -82,6 +82,32 @@
           {{ section.id }}
         </text>
       </g>
+
+      <!-- Render sensors -->
+      <g
+        v-for="(sensor, sensorIndex) in section.sensors"
+        :key="`sensor-${section.id}-${sensorIndex}`"
+        :transform="getSensorTransform(sensor)"
+      >
+        <circle
+          cx="0"
+          cy="0"
+          :r="SENSOR_RADIUS"
+          :fill="getSensorFill(sensor.id)"
+          :stroke="SENSOR_STROKE_COLOR"
+          :stroke-width="SENSOR_STROKE_WIDTH"
+        />
+        <text
+          x="0"
+          y="8"
+          text-anchor="middle"
+          font-size="22"
+          font-weight="600"
+          :fill="getSensorTextColor(sensor.id)"
+        >
+          {{ sensor.id }}
+        </text>
+      </g>
     </g>
   </g>
 </template>
@@ -96,11 +122,18 @@ const props = defineProps({
   sectionsState: {
     type: Array,
     default: () => []
+  },
+  sensorsState: {
+    type: Array,
+    default: () => []
   }
 })
 
 const MARKER_SIZE = 75
 const LABEL_OFFSET = 12
+const SENSOR_RADIUS = 22
+const SENSOR_STROKE_WIDTH = 3
+const SENSOR_STROKE_COLOR = '#ff0000'
 
 // Get track section definitions
 const trackSections = computed(() => getAllTrackSections())
@@ -168,6 +201,26 @@ function getDirectionLabelX(sectionId) {
   }
 
   return 0
+}
+
+function getSensorTransform(sensor) {
+  const x = sensor.x || 0
+  const y = sensor.y || 0
+  return `translate(${x} ${y})`
+}
+
+function getSensorState(sensorId) {
+  return props.sensorsState?.find(s => s.id === sensorId)
+}
+
+function getSensorFill(sensorId) {
+  const sensor = getSensorState(sensorId)
+  return sensor?.set ? '#ff0000' : '#ffffff'
+}
+
+function getSensorTextColor(sensorId) {
+  const sensor = getSensorState(sensorId)
+  return sensor?.set ? '#ffffff' : '#000000'
 }
 
 // Get point paths

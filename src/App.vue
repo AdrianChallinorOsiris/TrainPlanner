@@ -4,7 +4,7 @@
       <div class="svg-pane">
         <div class="svg-label">Layout</div>
         <svg viewBox="0 0 2000 2400" width="100%" height="100%">
-          <TrackLayout :sections-state="sections" />
+          <TrackLayout :sections-state="sections" :sensors-state="sensors" />
         </svg>
       </div>
       <LogWindow ref="logWindowRef" />
@@ -13,7 +13,7 @@
       <div class="panes-container">
         <SectionsPane :sections="sections" />
         <PointsPane />
-        <SensorsPane />
+        <SensorsPane :sensors="sensors" />
       </div>
       <CommandsPane />
     </div>
@@ -59,6 +59,14 @@ const sections = ref(
       held: false
     }
   })
+)
+
+// Sensors state - shared between SensorsPane and TrackLayout
+const sensors = ref(
+  Array.from({ length: 16 }, (_, i) => ({
+    id: i + 1,
+    set: false
+  }))
 )
 
 const closeSimulationDialog = () => {
