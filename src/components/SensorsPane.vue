@@ -56,15 +56,15 @@ const toggleSensor = (id) => {
   flex: 1;
   overflow-y: auto;
   padding: 0 1rem 1rem 1rem;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  column-count: 2;
+  column-gap: 0.75rem;
 }
 
 .sensor-item {
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 0.75rem;
+  margin-bottom: 0.75rem;
   background-color: white;
   display: flex;
   align-items: center;

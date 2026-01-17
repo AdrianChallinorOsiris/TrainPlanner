@@ -90,6 +90,7 @@ const sensors = ref(
     set: false
   }))
 )
+const previousSensors = ref(new Map())
 
 const closeSimulationDialog = () => {
   showSimulationDialog.value = false
@@ -275,6 +276,55 @@ watch(liveMode, (isLive) => {
     nextMap.set(section.id, section.direction)
   }
   previousSections.value = nextMap
+})
+
+watch(
+  sensors,
+  async (newSensors) => {
+    if (!liveMode.value) {
+      return
+    }
+    const prevMap = previousSensors.value
+    const nextMap = new Map()
+    for (const sensor of newSensors) {
+      nextMap.set(sensor.id, sensor.set)
+      const prevValue = prevMap.get(sensor.id)
+      if (prevValue !== undefined && prevValue === sensor.set) {
+        continue
+      }
+      if (prevValue === undefined) {
+        continue
+      }
+      const value = sensor.set ? 'true' : 'false'
+      try {
+        if (logWindowRef.value) {
+          logWindowRef.value.addMessage(
+            `Sensor ${sensor.id} set to ${value}`
+          )
+        }
+        await api.setSensorValue(sensor.id, value)
+      } catch (error) {
+        if (logWindowRef.value) {
+          logWindowRef.value.addMessage(
+            `Sensor ${sensor.id} update failed: ${error.message}`
+          )
+        }
+      }
+    }
+    previousSensors.value = nextMap
+  },
+  { deep: true }
+)
+
+watch(liveMode, (isLive) => {
+  if (!isLive) {
+    return
+  }
+  const nextMap = new Map()
+  for (const sensor of sensors.value) {
+    nextMap.set(sensor.id, sensor.set)
+  }
+  previousSensors.value = nextMap
 })
 
 provide('liveMode', liveMode)

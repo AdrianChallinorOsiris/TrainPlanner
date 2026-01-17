@@ -97,5 +97,20 @@ export const api = {
       throw new Error(`HTTP ${response.status}`)
     }
     return { success: true }
+  },
+  async setSensorValue(sensorId, value) {
+    const response = await fetch(
+      `${API_BASE_URL}/sensors/${sensorId}?value=${encodeURIComponent(value)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return { success: true }
   }
 }
