@@ -1,6 +1,6 @@
 <template>
   <div class="sections-pane">
-    <h2>Sections</h2>
+    <h2>Track Sections</h2>
     <div class="sections-list">
       <div
         v-for="section in sections"
@@ -9,6 +9,9 @@
       >
         <div class="section-header">
           <span class="section-id">{{ section.id }}</span>
+          <span class="section-name-text">
+            {{ section.name || 'Unnamed' }}
+          </span>
           <select 
             v-model="section.direction"
             class="direction-select"
@@ -22,6 +25,15 @@
             <option value="forward">Forward</option>
             <option value="backwards">Backwards</option>
           </select>
+          <input
+            v-model.number="section.speed"
+            type="number"
+            class="speed-input"
+            min="25"
+            max="100"
+            step="1"
+            :disabled="section.direction === 'off'"
+          />
           <label class="held-checkbox">
             <input
               type="checkbox"
@@ -29,12 +41,6 @@
             />
             <span>Held</span>
           </label>
-          <input
-            v-model="section.name"
-            type="text"
-            class="section-name-input"
-            placeholder="Section name"
-          />
         </div>
       </div>
     </div>
@@ -128,11 +134,22 @@ defineProps({
   cursor: pointer;
 }
 
-.section-name-input {
+.section-name-text {
   flex: 1;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.speed-input {
+  width: 70px;
   padding: 0.25rem 0.5rem;
   border: 1px solid #ccc;
   border-radius: 3px;
   font-size: 0.9rem;
+}
+
+.speed-input:disabled {
+  background-color: #f2f2f2;
+  color: #777;
 }
 </style>

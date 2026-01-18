@@ -130,11 +130,13 @@ const sections = ref(
       id,
       name: sectionDef?.name || '',
       direction: 'off',
-      held: false
+      held: false,
+      speed: 100
     }
   })
 )
-const previousSections = ref(new Map())
+const previousSectionDirections = ref(new Map())
+const previousSectionSpeeds = ref(new Map())
 const previousHeldSections = ref(new Map())
 
 // Point groups state - shared between PointsPane and TrackLayout
@@ -148,7 +150,7 @@ const previousPointGroups = ref(new Map())
 
 // Sensors state - shared between SensorsPane and TrackLayout
 const sensors = ref(
-  Array.from({ length: 16 }, (_, i) => ({
+  Array.from({ length: 24 }, (_, i) => ({
     id: i + 1,
     set: false
   }))
@@ -322,31 +324,63 @@ watch(
     if (!liveMode.value) {
       return
     }
-    const prevMap = previousSections.value
-    const nextMap = new Map()
+    const prevDirectionMap = previousSectionDirections.value
+    const prevSpeedMap = previousSectionSpeeds.value
+    const nextDirectionMap = new Map()
+    const nextSpeedMap = new Map()
     for (const section of newSections) {
-      nextMap.set(section.id, section.direction)
-      const prevDirection = prevMap.get(section.id)
-      if (prevDirection && prevDirection === section.direction) {
+      nextDirectionMap.set(section.id, section.direction)
+      nextSpeedMap.set(section.id, section.speed)
+
+      const prevDirection = prevDirectionMap.get(section.id)
+      const prevSpeed = prevSpeedMap.get(section.id)
+      if (prevDirection === undefined) {
         continue
       }
-      if (!prevDirection) {
+
+      const directionChanged = prevDirection !== section.direction
+      const speedChanged = prevSpeed !== section.speed
+      if (!directionChanged && !speedChanged) {
         continue
       }
+
+      if (section.direction === 'off') {
+        if (directionChanged) {
+          try {
+            if (logWindowRef.value) {
+              logWindowRef.value.addMessage(
+                `Track ${section.id} set to OFF`
+              )
+            }
+            await api.setTrackSpeed(section.id, 100, 'OFF')
+          } catch (error) {
+            if (logWindowRef.value) {
+              logWindowRef.value.addMessage(
+                `Track ${section.id} update failed: ${error.message}`
+              )
+            }
+          }
+        }
+        continue
+      }
+
       const direction =
         section.direction === 'forward'
           ? 'FWD'
-          : section.direction === 'backwards'
-            ? 'BCK'
-            : 'OFF'
-      const speed = 100
+          : 'BCK'
+      const speed = Math.min(100, Math.max(25, section.speed || 100))
       try {
         if (logWindowRef.value) {
-          logWindowRef.value.addMessage(
-            `Track ${section.id} set to ${direction} speed ${speed}`
-          )
+          const message = directionChanged
+            ? `Track ${section.id} set to ${direction} speed ${speed}`
+            : `Track ${section.id} speed set to ${speed}`
+          logWindowRef.value.addMessage(message)
         }
-        await api.setTrackSpeed(section.id, speed, direction)
+        if (directionChanged) {
+          await api.setTrackSpeed(section.id, speed, direction)
+        } else if (speedChanged) {
+          await api.setTrackSpeedOnly(section.id, speed, direction)
+        }
       } catch (error) {
         if (logWindowRef.value) {
           logWindowRef.value.addMessage(
@@ -355,7 +389,8 @@ watch(
         }
       }
     }
-    previousSections.value = nextMap
+    previousSectionDirections.value = nextDirectionMap
+    previousSectionSpeeds.value = nextSpeedMap
   },
   { deep: true }
 )
@@ -364,11 +399,14 @@ watch(liveMode, (isLive) => {
   if (!isLive) {
     return
   }
-  const nextMap = new Map()
+  const nextDirectionMap = new Map()
+  const nextSpeedMap = new Map()
   for (const section of sections.value) {
-    nextMap.set(section.id, section.direction)
+    nextDirectionMap.set(section.id, section.direction)
+    nextSpeedMap.set(section.id, section.speed)
   }
-  previousSections.value = nextMap
+  previousSectionDirections.value = nextDirectionMap
+  previousSectionSpeeds.value = nextSpeedMap
 })
 
 watch(liveMode, (isLive) => {
