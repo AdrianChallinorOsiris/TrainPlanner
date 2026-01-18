@@ -73,6 +73,7 @@ const sections = ref(
   })
 )
 const previousSections = ref(new Map())
+const previousHeldSections = ref(new Map())
 
 // Point groups state - shared between PointsPane and TrackLayout
 const pointGroups = ref(
@@ -226,6 +227,32 @@ watch(liveMode, (isLive) => {
 watch(
   sections,
   async (newSections) => {
+    const prevHeldMap = previousHeldSections.value
+    const nextHeldMap = new Map()
+    for (const section of newSections) {
+      nextHeldMap.set(section.id, section.held)
+      const prevHeld = prevHeldMap.get(section.id)
+      if (prevHeld !== undefined && prevHeld !== section.held) {
+        if (logWindowRef.value) {
+          logWindowRef.value.addMessage(
+            `Track ${section.id} hold ${section.held ? 'ON' : 'OFF'}`
+          )
+        }
+        if (liveMode.value) {
+          try {
+            await api.setTrackHold(section.id, section.held ? 'true' : 'false')
+          } catch (error) {
+            if (logWindowRef.value) {
+              logWindowRef.value.addMessage(
+                `Track ${section.id} hold update failed: ${error.message}`
+              )
+            }
+          }
+        }
+      }
+    }
+    previousHeldSections.value = nextHeldMap
+
     if (!liveMode.value) {
       return
     }
@@ -276,6 +303,17 @@ watch(liveMode, (isLive) => {
     nextMap.set(section.id, section.direction)
   }
   previousSections.value = nextMap
+})
+
+watch(liveMode, (isLive) => {
+  if (!isLive) {
+    return
+  }
+  const nextHeldMap = new Map()
+  for (const section of sections.value) {
+    nextHeldMap.set(section.id, section.held)
+  }
+  previousHeldSections.value = nextHeldMap
 })
 
 watch(
