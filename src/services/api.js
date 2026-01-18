@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://pi:5000/api'
+const API_BASE_URL = 'http://192.168.1.80:5000/api'
 const HEALTH_CHECK_TIMEOUT = 3000
 
 export const api = {

@@ -5,7 +5,67 @@
       <button class="bar-button" @click="handleAllStop">All Stop</button>
       <button class="bar-button" @click="handleLedTest">Led Test</button>
     </div>
-    <div class="app-container">
+
+    <div v-if="isCompact" class="compact-container">
+      <div class="svg-pane">
+        <div class="svg-label">Layout</div>
+        <svg viewBox="0 0 2000 2400" width="100%" height="100%">
+          <TrackLayout
+            :sections-state="sections"
+            :sensors-state="sensors"
+            :point-groups-state="pointGroups"
+          />
+        </svg>
+      </div>
+
+      <div class="tab-bar">
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'sections' }"
+          @click="activeTab = 'sections'"
+        >
+          Sections
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'points' }"
+          @click="activeTab = 'points'"
+        >
+          Point Groups
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'sensors' }"
+          @click="activeTab = 'sensors'"
+        >
+          Sensors
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'commands' }"
+          @click="activeTab = 'commands'"
+        >
+          Commands
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'log' }"
+          @click="activeTab = 'log'"
+        >
+          Log
+        </button>
+      </div>
+
+      <div class="tab-content">
+        <SectionsPane v-show="activeTab === 'sections'" :sections="sections" />
+        <PointsPane v-show="activeTab === 'points'" :point-groups="pointGroups" />
+        <SensorsPane v-show="activeTab === 'sensors'" :sensors="sensors" />
+        <CommandsPane v-show="activeTab === 'commands'" />
+        <LogWindow v-show="activeTab === 'log'" ref="logWindowRef" />
+      </div>
+    </div>
+
+    <div v-else class="app-container">
     <div class="left-container">
       <div class="svg-pane">
         <div class="svg-label">Layout</div>
@@ -44,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, provide, watch } from 'vue'
+import { ref, onMounted, onUnmounted, provide, watch } from 'vue'
 import SectionsPane from './components/SectionsPane.vue'
 import PointsPane from './components/PointsPane.vue'
 import SensorsPane from './components/SensorsPane.vue'
@@ -58,6 +118,8 @@ const logWindowRef = ref(null)
 const showSimulationDialog = ref(false)
 const showConnectedDialog = ref(false)
 const liveMode = ref(false)
+const isCompact = ref(false)
+const activeTab = ref('sections')
 
 // Sections state - shared between SectionsPane and TrackLayout
 const sections = ref(
@@ -95,6 +157,10 @@ const previousSensors = ref(new Map())
 
 const closeSimulationDialog = () => {
   showSimulationDialog.value = false
+}
+
+const updateLayoutMode = () => {
+  isCompact.value = window.matchMedia('(max-width: 1200px)').matches
 }
 
 const handleReset = async () => {
@@ -368,7 +434,15 @@ watch(liveMode, (isLive) => {
 provide('liveMode', liveMode)
 
 onMounted(() => {
+  updateLayoutMode()
+  window.addEventListener('resize', updateLayoutMode)
+  window.addEventListener('orientationchange', updateLayoutMode)
   checkHealth()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateLayoutMode)
+  window.removeEventListener('orientationchange', updateLayoutMode)
 })
 </script>
 
@@ -408,6 +482,48 @@ onMounted(() => {
   flex: 1;
   min-height: 0;
   width: 100%;
+}
+
+.compact-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.compact-container .svg-pane {
+  width: 100%;
+  align-self: stretch;
+  border-bottom: 1px solid #ddd;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #ddd;
+  background-color: #f5f5f5;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #ccc;
+  background-color: #ffffff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.tab-button.active {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.tab-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 .left-container {
