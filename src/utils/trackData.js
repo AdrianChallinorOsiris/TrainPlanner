@@ -99,7 +99,8 @@ setTrackSection(1, new TrackSection(1, {
   ],
   sensors: [
     new SensorMarker({ id: 1, x: 900, y: 2200}),
-
+    new SensorMarker({ id: 16, x: -1000, y: 1100}),
+    new SensorMarker({ id: 17, x: 2600, y: 1100}),
   ]
 }))
 
@@ -131,6 +132,8 @@ setTrackSection(2, new TrackSection(2, {
     ],
     sensors: [
         new SensorMarker({ id: 2, x: 900, y: 2000}),
+        new SensorMarker({ id: 18, x: -800, y: 1100}),
+        new SensorMarker({ id: 19, x: 2400, y: 1100}),
     ]
   }))
 
@@ -381,6 +384,7 @@ setTrackSection(4, new TrackSection(4, {
         new SensorMarker({ id: 13, x: 400, y: 1080}),
         new SensorMarker({ id: 14, x: 480, y: 1000}),
         new SensorMarker({ id: 15, x: 560, y: 950}),
+        new SensorMarker({ id: 20, x: 965, y: 1500}),
     ],
     pointGroupMarkers: [
         new PointGroupMarker({ groupId: 1, x: 400, y: 300 }),

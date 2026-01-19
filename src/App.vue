@@ -4,6 +4,7 @@
       <button class="bar-button" @click="handleReset">Reset</button>
       <button class="bar-button" @click="handleAllStop">All Stop</button>
       <button class="bar-button" @click="handleLedTest">Led Test</button>
+      <button class="bar-button" @click="handleHealth">Health</button>
     </div>
 
     <div v-if="isCompact" class="compact-container">
@@ -101,6 +102,24 @@
   </div>
 
   <!-- Connected Dialog (disabled for now) -->
+
+  <!-- Health Dialog -->
+  <div v-if="showHealthDialog" class="dialog-overlay" @click.self="closeHealthDialog">
+    <div class="dialog">
+      <h2>Health</h2>
+      <div class="health-list">
+        <div
+          v-for="item in healthDetails"
+          :key="item.key"
+          class="health-row"
+        >
+          <span class="health-key">{{ item.key }}</span>
+          <span class="health-value">{{ item.value }}</span>
+        </div>
+      </div>
+      <button @click="closeHealthDialog" class="dialog-button">OK</button>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -120,6 +139,8 @@ const showConnectedDialog = ref(false)
 const liveMode = ref(false)
 const isCompact = ref(false)
 const activeTab = ref('sections')
+const showHealthDialog = ref(false)
+const healthDetails = ref([])
 const isApplyingStatus = ref(false)
 const statusIntervalId = ref(null)
 
@@ -224,6 +245,24 @@ const handleLedTest = async () => {
   }
 }
 
+const handleHealth = async () => {
+  try {
+    const payload = await api.getHealth()
+    const entries = Object.entries(payload || {})
+      .filter(([key]) => key !== 'status' && key !== 'success')
+      .map(([key, value]) => ({ key, value }))
+    healthDetails.value = entries
+    showHealthDialog.value = true
+  } catch (error) {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage(`Health check failed: ${error.message}`)
+    }
+  }
+}
+
+const closeHealthDialog = () => {
+  showHealthDialog.value = false
+}
 
 const checkHealth = async () => {
   if (logWindowRef.value) {
@@ -817,5 +856,28 @@ onUnmounted(() => {
 
 .dialog-button:active {
   background-color: #004085;
+}
+
+.health-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.health-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.95rem;
+}
+
+.health-key {
+  font-weight: 600;
+  color: #333;
+}
+
+.health-value {
+  color: #555;
 }
 </style>
