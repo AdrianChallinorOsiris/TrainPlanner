@@ -144,5 +144,17 @@ export const api = {
       throw new Error(`HTTP ${response.status}`)
     }
     return { success: true }
+  },
+  async getStatus() {
+    const response = await fetch(`${API_BASE_URL}/status`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return response.json()
   }
 }

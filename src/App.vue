@@ -120,6 +120,8 @@ const showConnectedDialog = ref(false)
 const liveMode = ref(false)
 const isCompact = ref(false)
 const activeTab = ref('sections')
+const isApplyingStatus = ref(false)
+const statusIntervalId = ref(null)
 
 // Sections state - shared between SectionsPane and TrackLayout
 const sections = ref(
@@ -243,9 +245,109 @@ const checkHealth = async () => {
   }
 }
 
+const mapTrackDirection = (value) => {
+  if (!value) return null
+  const v = String(value).toLowerCase()
+  if (v === 'fwd' || v === 'forward') return 'forward'
+  if (v === 'bck' || v === 'bwd' || v === 'backwards' || v === 'reverse') return 'backwards'
+  if (v === 'off') return 'off'
+  return null
+}
+
+const mapPointGroupType = (value) => {
+  if (!value) return null
+  const v = String(value).toLowerCase()
+  if (v === 'thru') return 'thru'
+  if (v === 'branch') return 'branch'
+  return null
+}
+
+const applyStatusUpdate = (status) => {
+  if (!status) return
+  isApplyingStatus.value = true
+  const payload = status.data || status
+
+  if (payload.tracks && typeof payload.tracks === 'object') {
+    for (const [key, entry] of Object.entries(payload.tracks)) {
+      const id = Number(key)
+      const section = sections.value.find(s => s.id === id)
+      if (!section || !entry) continue
+      const mappedDirection = mapTrackDirection(entry.direction)
+      if (mappedDirection) {
+        section.direction = mappedDirection
+      }
+      if (entry.speed !== undefined && entry.speed !== null) {
+        section.speed = entry.speed
+      }
+      if (entry.held !== undefined) {
+        section.held = Boolean(entry.held)
+      }
+    }
+  }
+
+  if (payload.points && typeof payload.points === 'object') {
+    for (const [key, entry] of Object.entries(payload.points)) {
+      const groupId = Number(key)
+      const group = pointGroups.value.find(g => g.id === groupId)
+      if (!group || !entry) continue
+      const mappedType = mapPointGroupType(entry.direction)
+      if (mappedType) {
+        group.type = mappedType
+      }
+    }
+  }
+
+  if (typeof payload.sensors === 'number') {
+    const mask = payload.sensors
+    for (const sensor of sensors.value) {
+      const bit = 1 << (sensor.id - 1)
+      sensor.set = (mask & bit) !== 0
+    }
+  }
+
+  // Sync previous maps to avoid outbound commands for status updates
+  const nextDirectionMap = new Map()
+  const nextSpeedMap = new Map()
+  const nextHeldMap = new Map()
+  for (const section of sections.value) {
+    nextDirectionMap.set(section.id, section.direction)
+    nextSpeedMap.set(section.id, section.speed)
+    nextHeldMap.set(section.id, section.held)
+  }
+  previousSectionDirections.value = nextDirectionMap
+  previousSectionSpeeds.value = nextSpeedMap
+  previousHeldSections.value = nextHeldMap
+
+  const nextPointMap = new Map()
+  for (const group of pointGroups.value) {
+    nextPointMap.set(group.id, group.type)
+  }
+  previousPointGroups.value = nextPointMap
+
+  const nextSensorMap = new Map()
+  for (const sensor of sensors.value) {
+    nextSensorMap.set(sensor.id, sensor.set)
+  }
+  previousSensors.value = nextSensorMap
+
+  isApplyingStatus.value = false
+}
+
+const pollStatus = async () => {
+  try {
+    const status = await api.getStatus()
+    applyStatusUpdate(status)
+  } catch (error) {
+    // Ignore transient errors to avoid log spam
+  }
+}
+
 watch(
   pointGroups,
   async (newGroups) => {
+    if (isApplyingStatus.value) {
+      return
+    }
     if (!liveMode.value) {
       return
     }
@@ -295,6 +397,9 @@ watch(liveMode, (isLive) => {
 watch(
   sections,
   async (newSections) => {
+    if (isApplyingStatus.value) {
+      return
+    }
     const prevHeldMap = previousHeldSections.value
     const nextHeldMap = new Map()
     for (const section of newSections) {
@@ -423,6 +528,9 @@ watch(liveMode, (isLive) => {
 watch(
   sensors,
   async (newSensors) => {
+    if (isApplyingStatus.value) {
+      return
+    }
     if (!liveMode.value) {
       return
     }
@@ -476,11 +584,16 @@ onMounted(() => {
   window.addEventListener('resize', updateLayoutMode)
   window.addEventListener('orientationchange', updateLayoutMode)
   checkHealth()
+  pollStatus()
+  statusIntervalId.value = setInterval(pollStatus, 1000)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateLayoutMode)
   window.removeEventListener('orientationchange', updateLayoutMode)
+  if (statusIntervalId.value) {
+    clearInterval(statusIntervalId.value)
+  }
 })
 </script>
 
