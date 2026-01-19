@@ -175,7 +175,8 @@ const previousPointGroups = ref(new Map())
 const sensors = ref(
   Array.from({ length: 24 }, (_, i) => ({
     id: i + 1,
-    set: false
+    set: false,
+    disabled: i + 1 >= 21
   }))
 )
 const previousSensors = ref(new Map())

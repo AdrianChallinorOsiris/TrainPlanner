@@ -6,6 +6,7 @@
         v-for="sensor in sensors"
         :key="sensor.id"
         class="sensor-item"
+        :class="{ 'sensor-disabled': sensor.disabled }"
       >
         <span class="sensor-id">{{ sensor.id }}</span>
         <button
@@ -13,6 +14,7 @@
           class="sensor-button"
           :class="{ 'sensor-set': sensor.set }"
           :aria-pressed="sensor.set"
+          :disabled="sensor.disabled"
         >
         </button>
       </div>
@@ -87,6 +89,14 @@ const toggleSensor = (id) => {
   transition: all 0.2s;
   padding: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sensor-item.sensor-disabled {
+  opacity: 0.6;
+}
+
+.sensor-button:disabled {
+  cursor: not-allowed;
 }
 
 .sensor-button:hover {
