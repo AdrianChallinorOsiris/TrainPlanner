@@ -93,55 +93,25 @@ export function getAllTrackSections() {
 setTrackSection(1, new TrackSection(1, {
   color: '#00008B', // Dark blue
   name: 'Outer loop',
-  path: 'M 1400 200 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 2000 l -1600 0 a 500 500 0 0 1 0 -2000 l 400 0 m 0 -10 l 0 20 m 0 -10'  ,
+  path: 'M 1800 200 a 500 500 0 0 1 0 2000 l -1600 0 a 500 500 0 0 1 0 -2000 '  ,
   markers: [
-    new TrackMarker({ x: 200, y: 200, rotation: 0 }),
+    new TrackMarker({ x: 2200, y: 300, rotation: 0 }),
+    new TrackMarker({ x: -200, y: 300, rotation: 0 }),
+    new TrackMarker({ x: 1800, y: 2200, rotation: 0 }),
   ],
   sensors: [
-    new SensorMarker({ id: 1, x: 900, y: 2200}),
-    new SensorMarker({ id: 16, x: -1000, y: 1100}),
-    new SensorMarker({ id: 17, x: 2600, y: 1100}),
+    new SensorMarker({ id: 1, x: 2100, y: 255}),
+    new SensorMarker({ id: 2, x: 900, y: 2200}),
+    new SensorMarker({ id: 3, x: -100, y: 255}), 
   ]
 }))
 
-// Initialize section 2
-setTrackSection(2, new TrackSection(2, {
-    color: 'blue', // Dark blue
-    name: 'Middle Loop',
-    path: 'M 1400 400 m 0 -10 l 0 20 m 0 -10 l 200 0 a 500 500 0 0 1 0 1600  l -1600 0 a 500 500 0 0 1 0 -1600 ',
-    points: [
-      new PointDefinition({
-        id: 1, 
-        groupId: 5,
-        handedness: 'right',
-        rotation: 0,
-        x: 0, // Entry open end
-        y: 400
-      }),
-      new PointDefinition({
-        id: 3, 
-        groupId: 1,
-        handedness: 'left',
-        rotation: 0,
-        x: 200, // Entry open end
-        y: 400
-      }),
-    ], 
-    markers: [
-        new TrackMarker({ x: 200, y: 400, rotation: 0 }),
-    ],
-    sensors: [
-        new SensorMarker({ id: 2, x: 900, y: 2000}),
-        new SensorMarker({ id: 18, x: -800, y: 1100}),
-        new SensorMarker({ id: 19, x: 2400, y: 1100}),
-    ]
-  }))
 
-// Initialize section 3
-// Yellow section with two points and connecting paths
+// Initialize section 2
+// Brown section with two points and connecting paths
 // Point 1-A: left-hand, 180° rotation, thru end at (800, 200)
 // Point 3-A: right-hand, 0° rotation, entry at (620, 200)
-setTrackSection(3, new TrackSection(3, {
+setTrackSection(2, new TrackSection(2, {
   color: 'brown', 
   name: 'Outer loop - Platform 1',
   points: [
@@ -150,7 +120,7 @@ setTrackSection(3, new TrackSection(3, {
       groupId: 1,
       handedness: 'left',
       rotation: 180,
-      x: 600, // Entry open end
+      x: 800, // Entry open end
       y: 200
     }),
     new PointDefinition({
@@ -162,25 +132,61 @@ setTrackSection(3, new TrackSection(3, {
       y: 200
     }),
   ],
-  path: 'M 600 200 l 200 0 M 1000 200 l 400 0 m 0 -10 l 0 20 m 0 -10' ,
+  path: 'M 200 200 l 1600 0 ' ,
   markers: [
     new TrackMarker({ x:800, y: 200, rotation: 0 }),
   ],
   sensors: [
-    new SensorMarker({ id:3, x: 700, y: 200}),
+    new SensorMarker({ id:4, x: 400, y: 200}),
+    new SensorMarker({ id:5, x: 1400, y: 200}),
 ]
 }))
 
+// Initialize section 3
+setTrackSection(3, new TrackSection(3, {
+    color: 'blue', // Dark blue
+    name: 'Middle Loop',
+    path: 'M 1800 400 a 500 500 0 0 1 0 1600 l -1600 0 a 500 500 0 0 1 0 -1600 ',  
+    markers: [
+        new TrackMarker({ x: -200, y: 500, rotation: 0 }),
+        new TrackMarker({ x: 1800, y: 2000, rotation: 0 }),
+        new TrackMarker({ x: 2200, y: 500, rotation: 0 }),
+
+    ],
+    sensors: [
+      new SensorMarker({ id: 6, x: 2100, y: 455}),
+      new SensorMarker({ id: 7, x: 900, y: 2000}),
+      new SensorMarker({ id: 8, x: -100, y: 455}),    
+    ]
+  }))
+
+
 setTrackSection(4, new TrackSection(4, {
-    color: 'lightblue', // Yellow
+    color: 'orange', // Yellow
     name: 'Middle loop Platform 2',
     points: [
+      new PointDefinition({
+        id: 1, 
+        groupId: 5,
+        handedness: 'right',
+        rotation: 0,
+        x: 200, // Entry open end
+        y: 400
+      }),
+      new PointDefinition({
+        id: 3, 
+        groupId: 1,
+        handedness: 'left',
+        rotation: 0,
+        x: 400, // Entry open end
+        y: 400
+      }),
       new PointDefinition({
         id: 2, 
         groupId: 2,
         handedness: 'left',
         rotation: 180,
-        x: 800, // Entry open end
+        x: 1000, // Entry open end
         y: 400
       }),
       new PointDefinition({
@@ -200,18 +206,67 @@ setTrackSection(4, new TrackSection(4, {
         y: 400
       }),      
     ],
-    path: 'M 400 400 l 200 0 m 200 0 l 200 0 m 400 0' ,
+    path: 'M 600 400 l 1200 0 ' ,
     markers: [
         new TrackMarker({ x:800, y: 400, rotation: 0 }),
     ],
     sensors: [
-        new SensorMarker({ id: 4, x: 900, y: 400}),
+      new SensorMarker({ id: 9, x: 1400, y: 400}),
     ]
   }))
 
   setTrackSection(5, new TrackSection(5, {
     color: 'lightgreen', 
     name: 'Inner loop - part 1',
+    points: [
+      new PointDefinition({
+        id: 6, 
+        groupId: 6,
+        handedness: 'right',
+        rotation: 180,
+        x: 1800, // Entry open end
+        y: 1800
+      }),
+      new PointDefinition({
+        id: 7, 
+        groupId: 7,
+        handedness: 'left',
+        rotation: 225,
+        x: 1600, // Entry open end
+        y: 1700
+      }), 
+      new PointDefinition({
+        id: 8, 
+        groupId: 8,
+        handedness: 'right',
+        rotation: 180,
+        x: 1400, // Entry open end
+        y: 1631
+      })
+    ],
+    path: 'M 1800 600 a 500 500 0 0 1 0 1200 ',
+    markers: [
+      new TrackMarker({ x:2400, y: 1100, rotation: 0 }),
+    ],
+    sensors: [
+      new SensorMarker({ id: 10, x: 1900, y: 600}), 
+      new SensorMarker({ id: 11, x: 1850, y: 1800}), // 1900, 600
+
+    ]
+  }))
+
+  setTrackSection(6, new TrackSection(6, {
+    color: 'green', 
+    name: 'Inner loop - Station',
+    path: 'M 200 600 l 1600 0 ',
+    markers: [
+        new TrackMarker({ x:800, y: 600, rotation: 0 }),
+      ],
+    sensors: [
+       new SensorMarker({ id: 15, x: 400, y: 600}),
+       new SensorMarker({ id: 16, x: 1200, y: 600}),
+
+    ],
     points: [
       new PointDefinition({
         id: 4, 
@@ -222,131 +277,79 @@ setTrackSection(4, new TrackSection(4, {
         y: 600
       }),
       new PointDefinition({
-        id: 6, 
-        groupId: 6,
-        handedness: 'right',
-        rotation: 180,
-        x: 1600, // Entry open end
-        y: 1800
+        id: 10, 
+        groupId: 2,
+        handedness: 'left',
+        rotation: 0,
+        x: 600, // Entry open end
+        y: 600
       })
-    ],
-    path: 'M 1600 600 a 500 500 0 0 1 0 1200 ',
-    markers: [
-      new TrackMarker({ x:1600, y: 600, rotation: 0 }),
-    ],
-    sensors: [
-        new SensorMarker({ id: 5, x: 2200, y: 1100}),
-    ]
-  }))
-
-  setTrackSection(6, new TrackSection(6, {
-    color: 'green', 
-    name: 'Inner loop - Station',
-    path: 'M 600 600 l 800 0 ',
-    markers: [
-        new TrackMarker({ x:800, y: 600, rotation: 0 }),
-      ],
-    sensors: [
-        new SensorMarker({ id: 6, x: 900, y: 600}),
     ]
   }))
 
   setTrackSection(7, new TrackSection(7, {
     color: 'purple', 
     name: 'Inner loop - part 2',
-    path: 'M 1400 1800 l -1200 0 ',
+    path: 'M 1600 1800 l -1200 0 ',
     markers: [
         new TrackMarker({ x:800, y: 1800, rotation: 0 }),
     ],
     sensors: [
-        new SensorMarker({ id: 7, x: 900, y: 1800}),
+       new SensorMarker({ id: 12, x: 1000, y: 1800}),
+
     ]
   }))
 
   setTrackSection(8, new TrackSection(8, {
-    color: 'cyan', 
-    name: 'Sidings selector',
-    points: [
-      new PointDefinition({
-        id: 7, 
-        groupId: 7,
-        handedness: 'left',
-        rotation: 225,
-        x: 1400, // Entry open end
-        y: 1700
-      }), 
-      new PointDefinition({
-        id: 8, 
-        groupId: 8,
-        handedness: 'right',
-        rotation: 180,
-        x: 1200, // Entry open end
-        y: 1631
-      })
-    ],
-    markers: [
-      new TrackMarker({ x:1350, y: 1650, rotation: 0 }),
-    ],
-    sensors: [
-        new SensorMarker({ id: 8, x: 1200, y: 1631}),
-    ]
-  }))
-
-  setTrackSection(9, new TrackSection(9, {
     color: 'cyan',
     name: 'Inner loop - part 3',
-    path: 'M 0 1800 a 500 500 0 0 1 0 -1200 l 400 0 ',
+    path: 'M 200 1800 a 500 500 0 0 1 0 -1200 ',
     points: [
       new PointDefinition({
         id: 9, 
         groupId: 9,
         handedness: 'left',
         rotation: 0,
-        x: 0, // Entry open end
+        x: 200, // Entry open end
         y: 1800
       }), 
-      new PointDefinition({
-        id: 10, 
-        groupId: 2,
-        handedness: 'left',
-        rotation: 0,
-        x: 400, // Entry open end
-        y: 600
-      })
     ],
     markers: [
-        new TrackMarker({ x:0, y: 600, rotation: 0 }),
+        new TrackMarker({ x:-250, y: 800, rotation: 0 }),
     ],
     sensors: [
-        new SensorMarker({ id: 9, x: -600, y: 1100}),
+      new SensorMarker({ id: 13, x: 200, y: 1800}),
+      new SensorMarker({ id: 14, x: -60, y: 650}),
+    ]
+  }))
+
+  setTrackSection(9, new TrackSection(9, {
+    color: 'red',
+    name: 'Reversing line',
+    path: 'M 400 500 l 200 200 l 853 853 ',
+    markers: [
+        new TrackMarker({ x:1000, y: 1100, rotation: 0 }),
+    ],
+    sensors: [
+        new SensorMarker({ id: 23, x: 600, y: 700}),
+        new SensorMarker({ id: 24, x: 1300, y: 1400}),
+
     ]
   }))
 
   setTrackSection(10, new TrackSection(10, {
-    color: 'red',
-    name: 'Reversing line',
-    path: 'M 200 500 l 200 200 l 853 853 ',
-    markers: [
-        new TrackMarker({ x:400, y: 700, rotation: 0 }),
-    ],
-    sensors: [
-        new SensorMarker({ id: 10, x: 800, y: 1100}),
-    ]
-  }))
-
-  setTrackSection(11, new TrackSection(11, {
     color: '#9575CD',
     name: 'Inner loop - passing point',
-    path: 'M 200 1700 l 68 -68 l 750 0 ',
+    path: 'M 400 1700 l 68 -68 l 750 0 ',
     markers: [
         new TrackMarker({ x:800, y: 1640, rotation: 0 }),
       ],
     sensors: [
-        new SensorMarker({ id: 11, x: 900, y: 1628}),
+        new SensorMarker({ id: 17, x: 900, y: 1628}),
     ]
   }))
 
-  setTrackSection(12, new TrackSection(12, {
+  setTrackSection(11, new TrackSection(11, {
     color: 'orange',
     name: 'sidings',
     points: [
@@ -355,7 +358,7 @@ setTrackSection(4, new TrackSection(4, {
         groupId: 10,
         handedness: 'left',
         rotation: 225,
-        x: 1018, // Entry open end
+        x: 1218, // Entry open end
         y: 1550
       }),
       new PointDefinition({
@@ -363,7 +366,7 @@ setTrackSection(4, new TrackSection(4, {
         groupId: 12,
         handedness: 'right',
         rotation: 225,
-        x: 876, // Entry open end
+        x: 1076, // Entry open end
         y: 1410
       }),
       new PointDefinition({
@@ -371,33 +374,33 @@ setTrackSection(4, new TrackSection(4, {
         groupId: 11,
         handedness: 'left',
         rotation: 225,
-        x: 800, // Entry open end
+        x: 1000, // Entry open end
         y: 1480
       })
     ],
-    path: 'M 800 1480 l -100 -100 M 586 1403 l -400 -400 M 655 1335 l -400 -400 M 735 1268 l -400 -400 M 808 1200 l -400 -400 ',
+    path: 'M 786 1403 l -400 -400 M 855 1335 l -400 -400 M 935 1268 l -400 -400 M 1008 1200 l -400 -400 ',
     markers: [
-        new TrackMarker({ x:800, y: 1480, rotation: 0 }),
+        new TrackMarker({ x:1050, y: 1380, rotation: 0 }),
     ],
     sensors: [
-        new SensorMarker({ id: 12, x: 320, y: 1150}),
-        new SensorMarker({ id: 13, x: 400, y: 1080}),
-        new SensorMarker({ id: 14, x: 480, y: 1000}),
-        new SensorMarker({ id: 15, x: 560, y: 950}),
-        new SensorMarker({ id: 20, x: 965, y: 1500}),
+      new SensorMarker({ id: 18, x: 520, y: 1150}),
+      new SensorMarker({ id: 19, x: 600, y: 1080}),
+      new SensorMarker({ id: 20, x: 680, y: 1000}),
+      new SensorMarker({ id: 21, x: 760, y: 950}),
+      new SensorMarker({ id: 22, x: 1165, y: 1500}),
     ],
     pointGroupMarkers: [
-        new PointGroupMarker({ groupId: 1, x: 400, y: 300 }),
-        new PointGroupMarker({ groupId: 2, x: 600, y: 500 }),
+        new PointGroupMarker({ groupId: 1, x: 600, y: 300 }),
+        new PointGroupMarker({ groupId: 2, x: 800, y: 500 }),
         new PointGroupMarker({ groupId: 3, x: 1000, y: 300 }),
         new PointGroupMarker({ groupId: 4, x: 1400, y: 500 }),
-        new PointGroupMarker({ groupId: 5, x: 100, y: 400 }),
-        new PointGroupMarker({ groupId: 6, x: 1500, y: 1800 }),
-        new PointGroupMarker({ groupId: 7, x: 1250, y: 1600 }),
-        new PointGroupMarker({ groupId: 8, x: 1000, y: 1600 }),
-        new PointGroupMarker({ groupId: 9, x: 100, y: 1800 }),
-        new PointGroupMarker({ groupId: 10, x: 930, y: 1470 }),
-        new PointGroupMarker({ groupId: 11, x: 700, y: 1400 }),
-        new PointGroupMarker({ groupId: 12, x: 800, y: 1300 }),
+        new PointGroupMarker({ groupId: 5, x: 300, y: 400 }),
+        new PointGroupMarker({ groupId: 6, x: 1700, y: 1800 }),
+        new PointGroupMarker({ groupId: 7, x: 1500, y: 1620 }),
+        new PointGroupMarker({ groupId: 8, x: 1290, y: 1620 }),
+        new PointGroupMarker({ groupId: 9, x: 300, y: 1800 }),
+        new PointGroupMarker({ groupId: 10, x: 1130, y: 1470 }),
+        new PointGroupMarker({ groupId: 11, x: 900, y: 1400 }),
+        new PointGroupMarker({ groupId: 12, x: 1000, y: 1300 }),
     ]
   }))

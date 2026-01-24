@@ -168,5 +168,29 @@ export const api = {
       throw new Error(`HTTP ${response.status}`)
     }
     return response.json()
+  },
+  async shutdown() {
+    const response = await fetch(`${API_BASE_URL}/shutdown`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return { success: true }
+  },
+  async restart() {
+    const response = await fetch(`${API_BASE_URL}/restart`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return { success: true }
   }
 }

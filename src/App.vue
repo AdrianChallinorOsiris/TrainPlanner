@@ -5,6 +5,8 @@
       <button class="bar-button" @click="handleAllStop">All Stop</button>
       <button class="bar-button" @click="handleLedTest">Led Test</button>
       <button class="bar-button" @click="handleHealth">Health</button>
+      <button class="bar-button" @click="handleShutdown">Shutdown</button>
+      <button class="bar-button" @click="handleRestart">Restart</button>
     </div>
 
     <div v-if="isCompact" class="compact-container">
@@ -105,7 +107,7 @@
 
   <!-- Health Dialog -->
   <div v-if="showHealthDialog" class="dialog-overlay" @click.self="closeHealthDialog">
-    <div class="dialog">
+    <div class="dialog health-dialog">
       <h2>Health</h2>
       <div class="health-list">
         <div
@@ -118,6 +120,30 @@
         </div>
       </div>
       <button @click="closeHealthDialog" class="dialog-button">OK</button>
+    </div>
+  </div>
+
+  <!-- Shutdown Dialog -->
+  <div v-if="showShutdownDialog" class="dialog-overlay" @click.self="closeShutdownDialog">
+    <div class="dialog">
+      <h2>Confirm Shutdown</h2>
+      <p>Are you sure you want to shut down the controller?</p>
+      <div class="dialog-actions">
+        <button @click="closeShutdownDialog" class="dialog-button secondary">Cancel</button>
+        <button @click="confirmShutdown" class="dialog-button">Shutdown</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Restart Dialog -->
+  <div v-if="showRestartDialog" class="dialog-overlay" @click.self="closeRestartDialog">
+    <div class="dialog">
+      <h2>Confirm Restart</h2>
+      <p>Are you sure you want to restart the controller?</p>
+      <div class="dialog-actions">
+        <button @click="closeRestartDialog" class="dialog-button secondary">Cancel</button>
+        <button @click="confirmRestart" class="dialog-button">Restart</button>
+      </div>
     </div>
   </div>
 </template>
@@ -141,6 +167,8 @@ const isCompact = ref(false)
 const activeTab = ref('sections')
 const showHealthDialog = ref(false)
 const healthDetails = ref([])
+const showShutdownDialog = ref(false)
+const showRestartDialog = ref(false)
 const isApplyingStatus = ref(false)
 const statusIntervalId = ref(null)
 
@@ -176,7 +204,7 @@ const sensors = ref(
   Array.from({ length: 24 }, (_, i) => ({
     id: i + 1,
     set: false,
-    disabled: i + 1 >= 21
+    disabled: false
   }))
 )
 const previousSensors = ref(new Map())
@@ -259,6 +287,62 @@ const handleHealth = async () => {
       logWindowRef.value.addMessage(`Health check failed: ${error.message}`)
     }
   }
+}
+
+const handleShutdown = async () => {
+  if (!liveMode.value) {
+    return
+  }
+  showShutdownDialog.value = true
+}
+
+const handleRestart = async () => {
+  if (!liveMode.value) {
+    return
+  }
+  showRestartDialog.value = true
+}
+
+const confirmShutdown = async () => {
+  showShutdownDialog.value = false
+  try {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage('Shutdown button pressed')
+    }
+    await api.shutdown()
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage('Shutdown command sent')
+    }
+  } catch (error) {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage(`Shutdown failed: ${error.message}`)
+    }
+  }
+}
+
+const confirmRestart = async () => {
+  showRestartDialog.value = false
+  try {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage('Restart button pressed')
+    }
+    await api.restart()
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage('Restart command sent')
+    }
+  } catch (error) {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage(`Restart failed: ${error.message}`)
+    }
+  }
+}
+
+const closeShutdownDialog = () => {
+  showShutdownDialog.value = false
+}
+
+const closeRestartDialog = () => {
+  showRestartDialog.value = false
 }
 
 const closeHealthDialog = () => {
@@ -857,6 +941,27 @@ onUnmounted(() => {
 
 .dialog-button:active {
   background-color: #004085;
+}
+
+.dialog-button.secondary {
+  background-color: #ffffff;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.dialog-button.secondary:hover {
+  background-color: #f0f0f0;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.health-dialog {
+  max-width: 600px;
 }
 
 .health-list {
