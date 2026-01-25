@@ -9,6 +9,38 @@ if [ -z "$MESSAGE" ]; then
   exit 1
 fi
 
+node - <<'NODE' "$MESSAGE"
+const fs = require('fs');
+const path = 'src/version.json';
+const message = process.argv[1] || '';
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const pad = (n) => String(n).padStart(2, '0');
+
+let data = { version: '0.0.0', lastCommitMessage: '', lastCommitAt: '' };
+if (fs.existsSync(path)) {
+  try {
+    data = JSON.parse(fs.readFileSync(path, 'utf8'));
+  } catch (err) {
+    data = { version: '0.0.0', lastCommitMessage: '', lastCommitAt: '' };
+  }
+}
+
+const parts = String(data.version || '0.0.0').split('.').map((v) => parseInt(v, 10) || 0);
+parts[2] = (parts[2] || 0) + 1;
+const version = parts.join('.');
+const now = new Date();
+const timestamp = `${pad(now.getHours())}:${pad(now.getMinutes())} ${pad(now.getDate())}-${months[now.getMonth()]}-${now.getFullYear()}`;
+
+const next = {
+  version,
+  lastCommitMessage: message,
+  lastCommitAt: timestamp
+};
+
+fs.writeFileSync(path, JSON.stringify(next, null, 2) + '\n');
+console.log(`Version: ${version}`);
+NODE
+
 git add -A
 git status
 git commit -m "$MESSAGE"

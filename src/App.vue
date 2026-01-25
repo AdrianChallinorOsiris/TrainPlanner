@@ -7,6 +7,7 @@
       <button class="bar-button" @click="handleHealth">Health</button>
       <button class="bar-button" @click="handleShutdown">Shutdown</button>
       <button class="bar-button" @click="handleRestart">Restart</button>
+      <button class="bar-button" @click="handleAbout">About</button>
     </div>
 
     <div v-if="isCompact" class="compact-container">
@@ -123,6 +124,28 @@
     </div>
   </div>
 
+  <!-- About Dialog -->
+  <div v-if="showAboutDialog" class="dialog-overlay" @click.self="closeAboutDialog">
+    <div class="dialog">
+      <h2>About</h2>
+      <div class="about-list">
+        <div class="about-row">
+          <span class="about-key">Version</span>
+          <span class="about-value">{{ versionInfo.version || 'Unknown' }}</span>
+        </div>
+        <div class="about-row">
+          <span class="about-key">Last Commit</span>
+          <span class="about-value">{{ versionInfo.lastCommitMessage || 'Not set' }}</span>
+        </div>
+        <div class="about-row">
+          <span class="about-key">Commit Time</span>
+          <span class="about-value">{{ versionInfo.lastCommitAt || 'Not set' }}</span>
+        </div>
+      </div>
+      <button @click="closeAboutDialog" class="dialog-button">OK</button>
+    </div>
+  </div>
+
   <!-- Shutdown Dialog -->
   <div v-if="showShutdownDialog" class="dialog-overlay" @click.self="closeShutdownDialog">
     <div class="dialog">
@@ -158,6 +181,7 @@ import LogWindow from './components/LogWindow.vue'
 import TrackLayout from './components/TrackLayout.vue'
 import { api } from './services/api'
 import { getTrackSection } from './utils/trackData'
+import versionInfo from './version.json'
 
 const logWindowRef = ref(null)
 const showSimulationDialog = ref(false)
@@ -169,6 +193,7 @@ const showHealthDialog = ref(false)
 const healthDetails = ref([])
 const showShutdownDialog = ref(false)
 const showRestartDialog = ref(false)
+const showAboutDialog = ref(false)
 const isApplyingStatus = ref(false)
 const statusIntervalId = ref(null)
 
@@ -287,6 +312,14 @@ const handleHealth = async () => {
       logWindowRef.value.addMessage(`Health check failed: ${error.message}`)
     }
   }
+}
+
+const handleAbout = () => {
+  showAboutDialog.value = true
+}
+
+const closeAboutDialog = () => {
+  showAboutDialog.value = false
 }
 
 const handleShutdown = async () => {
@@ -984,6 +1017,29 @@ onUnmounted(() => {
 }
 
 .health-value {
+  color: #555;
+}
+
+.about-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.about-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.95rem;
+}
+
+.about-key {
+  font-weight: 600;
+  color: #333;
+}
+
+.about-value {
   color: #555;
 }
 
