@@ -330,6 +330,16 @@ setTrackSection(4, new TrackSection(4, {
     markers: [
         new TrackMarker({ x:1000, y: 1100, rotation: 0 }),
     ],
+    points: [
+      new PointDefinition({
+        id: 14, 
+        groupId: 13,
+        handedness: 'left',
+        rotation: 45,
+        x: 600, // Entry open end
+        y: 700
+      }),
+    ],
     sensors: [
         new SensorMarker({ id: 23, x: 600, y: 700}),
         new SensorMarker({ id: 24, x: 1300, y: 1400}),
@@ -402,5 +412,18 @@ setTrackSection(4, new TrackSection(4, {
         new PointGroupMarker({ groupId: 10, x: 1130, y: 1470 }),
         new PointGroupMarker({ groupId: 11, x: 900, y: 1400 }),
         new PointGroupMarker({ groupId: 12, x: 1000, y: 1300 }),
+        new PointGroupMarker({ groupId: 13, x: 675, y: 775 }),
     ]
   }))
+
+setTrackSection(12, new TrackSection(12, {
+  color: 'black',
+  name: 'Industrial',
+  path: 'M 800 770 l 900 0 ',
+  markers: [
+    new TrackMarker({ x:975, y: 775, rotation: 0 }),
+  ],
+  sensors: [
+    new SensorMarker({ id: 24, x: 1100, y: 770}),
+  ]
+}));

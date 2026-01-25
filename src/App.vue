@@ -192,7 +192,7 @@ const previousHeldSections = ref(new Map())
 
 // Point groups state - shared between PointsPane and TrackLayout
 const pointGroups = ref(
-  Array.from({ length: 12 }, (_, i) => ({
+  Array.from({ length: 13 }, (_, i) => ({
     id: i + 1,
     type: 'thru'
   }))
@@ -986,4 +986,5 @@ onUnmounted(() => {
 .health-value {
   color: #555;
 }
+
 </style>
