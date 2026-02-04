@@ -326,7 +326,7 @@ setTrackSection(4, new TrackSection(4, {
   setTrackSection(9, new TrackSection(9, {
     color: 'red',
     name: 'Reversing line',
-    path: 'M 400 500 l 200 200 l 853 853 ',
+    path: 'M 400 500 l 200 200 m 160 160 l 710 710 ',
     markers: [
         new TrackMarker({ x:1000, y: 1100, rotation: 0 }),
     ],
@@ -334,14 +334,14 @@ setTrackSection(4, new TrackSection(4, {
       new PointDefinition({
         id: 14, 
         groupId: 13,
-        handedness: 'left',
-        rotation: 45,
+        handedness: 'right',
+        rotation: 20,
         x: 600, // Entry open end
         y: 700
       }),
     ],
     sensors: [
-        new SensorMarker({ id: 23, x: 600, y: 700}),
+        new SensorMarker({ id: 23, x: 800, y: 900}),
         new SensorMarker({ id: 24, x: 1300, y: 1400}),
 
     ]
@@ -412,7 +412,7 @@ setTrackSection(4, new TrackSection(4, {
         new PointGroupMarker({ groupId: 10, x: 1130, y: 1470 }),
         new PointGroupMarker({ groupId: 11, x: 900, y: 1400 }),
         new PointGroupMarker({ groupId: 12, x: 1000, y: 1300 }),
-        new PointGroupMarker({ groupId: 13, x: 675, y: 775 }),
+        new PointGroupMarker({ groupId: 13, x: 650, y: 750 }),
     ]
   }))
 
