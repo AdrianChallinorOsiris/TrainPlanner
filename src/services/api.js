@@ -169,6 +169,18 @@ export const api = {
     }
     return response.json()
   },
+  async getTrackStatus() {
+    const response = await fetch(`${API_BASE_URL}/tracks/status`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return response.json()
+  },
   async shutdown() {
     const response = await fetch(`${API_BASE_URL}/shutdown`, {
       method: 'POST',

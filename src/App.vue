@@ -5,6 +5,7 @@
       <button class="bar-button" @click="handleAllStop">All Stop</button>
       <button class="bar-button" @click="handleLedTest">Led Test</button>
       <button class="bar-button" @click="handleHealth">Health</button>
+      <button class="bar-button" @click="handleStatus">Status</button>
       <button class="bar-button" @click="handleShutdown">Shutdown</button>
       <button class="bar-button" @click="handleRestart">Restart</button>
       <button class="bar-button" @click="handleAbout">About</button>
@@ -124,6 +125,20 @@
     </div>
   </div>
 
+  <!-- Status Dialog -->
+  <div v-if="showStatusDialog" class="dialog-overlay" @click.self="closeStatusDialog">
+    <div class="dialog status-dialog">
+      <h2>Status</h2>
+      <div v-if="heldCount > 0" class="status-list">
+        <div v-for="(entry, index) in heldTracks" :key="`held-${index}`" class="status-row">
+          {{ entry }}
+        </div>
+      </div>
+      <p v-else class="status-empty">No tracks are held.</p>
+      <button @click="closeStatusDialog" class="dialog-button">OK</button>
+    </div>
+  </div>
+
   <!-- About Dialog -->
   <div v-if="showAboutDialog" class="dialog-overlay" @click.self="closeAboutDialog">
     <div class="dialog">
@@ -191,6 +206,9 @@ const isCompact = ref(false)
 const activeTab = ref('sections')
 const showHealthDialog = ref(false)
 const healthDetails = ref([])
+const showStatusDialog = ref(false)
+const heldTracks = ref([])
+const heldCount = ref(0)
 const showShutdownDialog = ref(false)
 const showRestartDialog = ref(false)
 const showAboutDialog = ref(false)
@@ -314,6 +332,23 @@ const handleHealth = async () => {
   }
 }
 
+const handleStatus = async () => {
+  try {
+    const response = await api.getTrackStatus()
+    const payload = response?.data || response || {}
+    const tracks = Array.isArray(payload.held_tracks) ? payload.held_tracks : []
+    heldTracks.value = tracks
+    heldCount.value = Number.isFinite(Number(payload.count))
+      ? Number(payload.count)
+      : tracks.length
+    showStatusDialog.value = true
+  } catch (error) {
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage(`Status check failed: ${error.message}`)
+    }
+  }
+}
+
 const handleAbout = () => {
   showAboutDialog.value = true
 }
@@ -380,6 +415,10 @@ const closeRestartDialog = () => {
 
 const closeHealthDialog = () => {
   showHealthDialog.value = false
+}
+
+const closeStatusDialog = () => {
+  showStatusDialog.value = false
 }
 
 const checkHealth = async () => {
@@ -1018,6 +1057,27 @@ onUnmounted(() => {
 
 .health-value {
   color: #555;
+}
+
+.status-dialog {
+  max-width: 600px;
+}
+
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.status-row {
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.status-empty {
+  margin-top: 0.5rem;
+  color: #666;
 }
 
 .about-list {
