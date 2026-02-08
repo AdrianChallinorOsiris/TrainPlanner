@@ -338,7 +338,7 @@ setTrackSection(4, new TrackSection(4, {
   setTrackSection(9, new TrackSection(9, {
     color: 'red',
     name: 'Reversing line',
-    path: 'M 750 850 l 710 710 ',
+    path: 'M 750 850  l 20 0 l -20 20 l 0 -20 l 710 710 m -20 -20 l 20 0 l -20 20 l 0 -20',
     markers: [
         new TrackMarker({ x:1000, y: 1100, rotation: 0 }),
     ],
@@ -391,7 +391,7 @@ setTrackSection(4, new TrackSection(4, {
         y: 1480
       })
     ],
-    path: 'M 786 1403 l -400 -400 M 855 1335 l -400 -400 M 935 1268 l -400 -400 M 1008 1200 l -400 -400 ',
+    path: 'M 1218 1550 l 20 0 l -20 20 l 0 -10 M 786 1403 l -400 -400 m -10 10 l 20 -20 M 855 1335 l -400 -400  m -10 10 l 20 -20 M 935 1268 l -400 -400  m -10 10 l 20 -20 M 1008 1200 l -400 -400  m -10 10 l 20 -20 ',
     markers: [
         new TrackMarker({ x:1050, y: 1380, rotation: 0 }),
     ],
@@ -421,7 +421,7 @@ setTrackSection(4, new TrackSection(4, {
 setTrackSection(12, new TrackSection(12, {
   color: 'black',
   name: 'Industrial',
-  path: 'M 800 770 l 900 0 ',
+  path: 'M 795 770 l 0 -20 l 20 20 l -20 20 l 0 -20 l 900 0 m 0 -10 l 0 20',
   markers: [
     new TrackMarker({ x:975, y: 775, rotation: 0 }),
   ],
