@@ -90,6 +90,9 @@
         v-for="(sensor, sensorIndex) in section.sensors"
         :key="`sensor-${section.id}-${sensorIndex}`"
         :transform="getSensorTransform(sensor)"
+        class="sensor-marker"
+        :class="{ 'sensor-disabled': isSensorDisabled(sensor.id) }"
+        @click="toggleSensor(sensor.id)"
       >
         <circle
           cx="0"
@@ -275,6 +278,19 @@ function getSensorState(sensorId) {
   return props.sensorsState?.find(s => s.id === sensorId)
 }
 
+function isSensorDisabled(sensorId) {
+  const sensor = getSensorState(sensorId)
+  return Boolean(sensor?.disabled)
+}
+
+function toggleSensor(sensorId) {
+  const sensor = getSensorState(sensorId)
+  if (!sensor || sensor.disabled) {
+    return
+  }
+  sensor.set = !sensor.set
+}
+
 function getSensorFill(sensorId) {
   const sensor = getSensorState(sensorId)
   return sensor?.set ? '#ff0000' : '#ffffff'
@@ -321,5 +337,14 @@ function getPointBranchPath(pointDef) {
 .track-section {
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.sensor-marker {
+  cursor: pointer;
+}
+
+.sensor-marker.sensor-disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 </style>
