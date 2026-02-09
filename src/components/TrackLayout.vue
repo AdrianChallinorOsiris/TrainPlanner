@@ -119,6 +119,8 @@
         v-for="(marker, markerIndex) in section.pointGroupMarkers"
         :key="`point-group-marker-${section.id}-${markerIndex}`"
         :transform="getPointGroupMarkerTransform(marker)"
+        class="point-group-marker"
+        @click="togglePointGroup(marker.groupId)"
       >
         <polygon
           :points="getDiamondPoints(POINT_GROUP_MARKER_SIZE)"
@@ -244,6 +246,14 @@ function getPointGroupType(groupId) {
   return group?.type || 'thru'
 }
 
+function togglePointGroup(groupId) {
+  const group = props.pointGroupsState?.find(g => g.id === groupId)
+  if (!group) {
+    return
+  }
+  group.type = group.type === 'thru' ? 'branch' : 'thru'
+}
+
 function getPointSegmentOpacity(groupId, segmentType) {
   const activeType = getPointGroupType(groupId)
   if (activeType === segmentType) {
@@ -346,5 +356,9 @@ function getPointBranchPath(pointDef) {
 .sensor-marker.sensor-disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.point-group-marker {
+  cursor: pointer;
 }
 </style>
