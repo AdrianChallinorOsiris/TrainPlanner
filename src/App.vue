@@ -11,39 +11,21 @@
       <button class="bar-button" @click="handleAbout">About</button>
     </div>
 
-    <div v-if="isCompact" class="compact-container">
-      <div class="svg-pane">
-        <div class="svg-label">Layout</div>
-        <svg viewBox="0 0 2000 2400" width="100%" height="100%">
-          <TrackLayout
-            :sections-state="sections"
-            :sensors-state="sensors"
-            :point-groups-state="pointGroups"
-          />
-        </svg>
-      </div>
-
+    <div class="app-container">
       <div class="tab-bar">
         <button
           class="tab-button"
-          :class="{ active: activeTab === 'sections' }"
-          @click="activeTab = 'sections'"
+          :class="{ active: activeTab === 'track' }"
+          @click="activeTab = 'track'"
         >
-          Sections
+          Track Layout
         </button>
         <button
           class="tab-button"
-          :class="{ active: activeTab === 'points' }"
-          @click="activeTab = 'points'"
+          :class="{ active: activeTab === 'control' }"
+          @click="activeTab = 'control'"
         >
-          Point Groups
-        </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'sensors' }"
-          @click="activeTab = 'sensors'"
-        >
-          Sensors
+          Track Controls
         </button>
         <button
           class="tab-button"
@@ -52,46 +34,30 @@
         >
           Commands
         </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'log' }"
-          @click="activeTab = 'log'"
-        >
-          Log
-        </button>
       </div>
 
       <div class="tab-content">
-        <SectionsPane v-show="activeTab === 'sections'" :sections="sections" />
-        <PointsPane v-show="activeTab === 'points'" :point-groups="pointGroups" />
-        <SensorsPane v-show="activeTab === 'sensors'" :sensors="sensors" />
-        <CommandsPane v-show="activeTab === 'commands'" />
-        <LogWindow v-show="activeTab === 'log'" ref="logWindowRef" />
+        <div v-if="activeTab === 'track'" class="svg-pane">
+          <div class="svg-label">Layout</div>
+          <svg viewBox="0 0 2000 2400" width="100%" height="100%">
+            <TrackLayout
+              :sections-state="sections"
+              :sensors-state="sensors"
+              :point-groups-state="pointGroups"
+            />
+          </svg>
+        </div>
+        <div v-else-if="activeTab === 'control'" class="panes-container">
+          <SectionsPane :sections="sections" />
+          <PointsPane :point-groups="pointGroups" />
+          <SensorsPane :sensors="sensors" />
+        </div>
+        <CommandsPane v-else />
       </div>
-    </div>
 
-    <div v-else class="app-container">
-    <div class="left-container">
-      <div class="svg-pane">
-        <div class="svg-label">Layout</div>
-        <svg viewBox="0 0 2000 2400" width="100%" height="100%">
-          <TrackLayout
-            :sections-state="sections"
-            :sensors-state="sensors"
-            :point-groups-state="pointGroups"
-          />
-        </svg>
+      <div class="log-container">
+        <LogWindow ref="logWindowRef" />
       </div>
-      <LogWindow ref="logWindowRef" />
-    </div>
-    <div class="right-container">
-      <div class="panes-container">
-        <SectionsPane :sections="sections" />
-        <PointsPane :point-groups="pointGroups" />
-        <SensorsPane :sensors="sensors" />
-      </div>
-      <CommandsPane />
-    </div>
     </div>
   </div>
   
@@ -203,7 +169,7 @@ const showSimulationDialog = ref(false)
 const showConnectedDialog = ref(false)
 const liveMode = ref(false)
 const isCompact = ref(false)
-const activeTab = ref('sections')
+const activeTab = ref('track')
 const showHealthDialog = ref(false)
 const healthDetails = ref([])
 const showStatusDialog = ref(false)
@@ -826,22 +792,10 @@ onUnmounted(() => {
 
 .app-container {
   display: flex;
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-}
-
-.compact-container {
-  display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
-}
-
-.compact-container .svg-pane {
   width: 100%;
-  align-self: stretch;
-  border-bottom: 1px solid #ddd;
 }
 
 .tab-bar {
@@ -871,15 +825,8 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   overflow: auto;
-}
-
-.left-container {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #ddd;
 }
 
 .svg-pane {
@@ -888,8 +835,8 @@ onUnmounted(() => {
   border-bottom: 1px solid #ddd;
   background-color: #f9f9f9;
   position: relative;
-  width: calc(100% - 100px);
-  align-self: flex-start;
+  width: 100%;
+  align-self: stretch;
 }
 
 .svg-label {
@@ -905,24 +852,11 @@ onUnmounted(() => {
   border-radius: 3px;
 }
 
-.left-container > :last-child {
-  flex: 0 0 200px;
-  min-height: 200px;
-}
-
 .svg-pane svg {
   display: block;
   background-color: white;
   width: 100%;
   height: 100%;
-}
-
-.right-container {
-  flex: 0 0 900px;
-  width: 900px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 .panes-container {
@@ -932,9 +866,10 @@ onUnmounted(() => {
   flex-direction: row;
 }
 
-.right-container > :last-child {
+.log-container {
   flex: 0 0 200px;
   min-height: 200px;
+  border-top: 1px solid #ddd;
 }
 
 .dialog-overlay {

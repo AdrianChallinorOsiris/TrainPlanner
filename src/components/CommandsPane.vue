@@ -9,20 +9,42 @@
         @keydown.ctrl.enter="handleSubmit"
         @keydown.meta.enter="handleSubmit"
       ></textarea>
-      <button @click="handleSubmit" class="submit-button">Submit</button>
+      <div class="commands-actions">
+        <button @click="handleSubmit" class="submit-button">Compile</button>
+        <button
+          @click="handleExecute"
+          class="submit-button"
+          :disabled="!compileSucceeded"
+        >
+          Execute
+        </button>
+        <button @click="handleLoad" class="submit-button secondary">Load</button>
+        <button @click="handleSave" class="submit-button secondary">Save</button>
+      </div>
     </div>
   </div>
+
+  <input
+    ref="fileInputRef"
+    type="file"
+    accept=".txt,.dsl,.train,text/plain"
+    class="file-input"
+    @change="handleFileSelected"
+  />
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 const commandText = ref('')
+const fileInputRef = ref(null)
+const compileSucceeded = ref(false)
 
 const handleSubmit = () => {
   if (commandText.value.trim()) {
     // Call action routine (to be implemented)
     processCommand(commandText.value)
+    compileSucceeded.value = true
     // Clear input
     commandText.value = ''
   }
@@ -32,6 +54,48 @@ const processCommand = (command) => {
   // Action routine - to be implemented
   console.log('Command received:', command)
 }
+
+const handleExecute = () => {
+  if (!compileSucceeded.value) {
+    return
+  }
+  // Execute routine - to be implemented
+  console.log('Execute pressed')
+}
+
+const handleLoad = () => {
+  if (fileInputRef.value) {
+    fileInputRef.value.value = ''
+    fileInputRef.value.click()
+  }
+}
+
+const handleFileSelected = (event) => {
+  const file = event.target.files?.[0]
+  if (!file) {
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = () => {
+    commandText.value = String(reader.result || '')
+    compileSucceeded.value = false
+  }
+  reader.readAsText(file)
+}
+
+const handleSave = () => {
+  const blob = new Blob([commandText.value], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'commands.txt'
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+watch(commandText, () => {
+  compileSucceeded.value = false
+})
 </script>
 
 <style scoped>
@@ -99,5 +163,31 @@ const processCommand = (command) => {
 
 .submit-button:active {
   background-color: #004085;
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submit-button.secondary {
+  background-color: #ffffff;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.submit-button.secondary:hover {
+  background-color: #f0f0f0;
+}
+
+.commands-actions {
+  align-self: flex-end;
+  display: flex;
+  gap: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.file-input {
+  display: none;
 }
 </style>
