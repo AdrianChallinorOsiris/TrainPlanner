@@ -5,6 +5,7 @@
       v-for="section in trackSections"
       :key="section.id"
       :class="['track-section', `section-${section.id}`]"
+      @click="handleTrackClick(section.id)"
     >
       <!-- Render SVG paths -->
       <path
@@ -92,7 +93,7 @@
         :transform="getSensorTransform(sensor)"
         class="sensor-marker"
         :class="{ 'sensor-disabled': isSensorDisabled(sensor.id) }"
-        @click="toggleSensor(sensor.id)"
+        @click.stop="toggleSensor(sensor.id)"
       >
         <circle
           cx="0"
@@ -120,7 +121,7 @@
         :key="`point-group-marker-${section.id}-${markerIndex}`"
         :transform="getPointGroupMarkerTransform(marker)"
         class="point-group-marker"
-        @click="togglePointGroup(marker.groupId)"
+        @click.stop="togglePointGroup(marker.groupId)"
       >
         <polygon
           :points="getDiamondPoints(POINT_GROUP_MARKER_SIZE)"
@@ -163,6 +164,8 @@ const props = defineProps({
     default: () => []
   }
 })
+
+const emit = defineEmits(['track-click'])
 
 const MARKER_SIZE = 75
 const LABEL_OFFSET = 12
@@ -239,6 +242,10 @@ function getDirectionLabelX(sectionId) {
   }
 
   return 0
+}
+
+function handleTrackClick(sectionId) {
+  emit('track-click', sectionId)
 }
 
 function getPointGroupType(groupId) {
@@ -347,6 +354,7 @@ function getPointBranchPath(pointDef) {
 .track-section {
   stroke-linecap: round;
   stroke-linejoin: round;
+  cursor: pointer;
 }
 
 .sensor-marker {

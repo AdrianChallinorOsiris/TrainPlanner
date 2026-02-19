@@ -44,6 +44,7 @@
               :sections-state="sections"
               :sensors-state="sensors"
               :point-groups-state="pointGroups"
+              @track-click="openTrackDialog"
             />
           </svg>
         </div>
@@ -56,8 +57,64 @@
       </div>
 
       <div class="log-container">
-        <LogWindow ref="logWindowRef" />
+        <div class="log-pane">
+          <LogWindow ref="logWindowRef" />
+        </div>
+        <div class="status-pane">
+          <h3>Track Status</h3>
+          <div v-if="indicatorEntries.length" class="indicator-grid">
+            <div
+              v-for="indicator in indicatorEntries"
+              :key="indicator.key"
+              class="indicator-box"
+              :class="{ off: indicator.isOff }"
+              :style="indicator.isOff ? null : { backgroundColor: indicator.color, color: indicator.textColor }"
+              :title="indicator.value"
+            >
+              {{ indicator.label }}
+            </div>
+          </div>
+          <div v-else class="status-placeholder">No indicators reported.</div>
+        </div>
       </div>
+    </div>
+  </div>
+  
+  <!-- Track Control Dialog -->
+  <div v-if="showTrackDialog" class="dialog-overlay" @click.self="closeTrackDialog">
+    <div class="dialog track-control-dialog">
+      <h2>Track {{ trackDialogSection?.id }}</h2>
+      <div v-if="trackDialogSection" class="track-control-form">
+        <label class="track-control-field">
+          <span class="track-control-label">Direction</span>
+          <select
+            v-model="trackDialogSection.direction"
+            class="direction-select"
+            :class="{
+              'direction-forward': trackDialogSection.direction === 'forward',
+              'direction-backwards': trackDialogSection.direction === 'backwards',
+              'direction-off': trackDialogSection.direction === 'off'
+            }"
+          >
+            <option value="off">Off</option>
+            <option value="forward">Forward</option>
+            <option value="backwards">Backwards</option>
+          </select>
+        </label>
+        <label class="track-control-field">
+          <span class="track-control-label">Speed</span>
+          <input
+            v-model.number="trackDialogSection.speed"
+            type="number"
+            class="speed-input"
+            min="25"
+            max="100"
+            step="1"
+            :disabled="trackDialogSection.direction === 'off'"
+          />
+        </label>
+      </div>
+      <button @click="closeTrackDialog" class="dialog-button">Close</button>
     </div>
   </div>
   
@@ -153,7 +210,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, provide, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, provide, watch } from 'vue'
 import SectionsPane from './components/SectionsPane.vue'
 import PointsPane from './components/PointsPane.vue'
 import SensorsPane from './components/SensorsPane.vue'
@@ -175,11 +232,34 @@ const healthDetails = ref([])
 const showStatusDialog = ref(false)
 const heldTracks = ref([])
 const heldCount = ref(0)
+const indicators = ref({})
+const showTrackDialog = ref(false)
+const trackDialogSectionId = ref(null)
 const showShutdownDialog = ref(false)
 const showRestartDialog = ref(false)
 const showAboutDialog = ref(false)
 const isApplyingStatus = ref(false)
 const statusIntervalId = ref(null)
+const trackDialogSection = computed(() => {
+  if (trackDialogSectionId.value === null) {
+    return null
+  }
+  return sections.value.find(section => section.id === trackDialogSectionId.value) || null
+})
+
+const indicatorEntries = computed(() => {
+  return Object.entries(indicators.value || {}).map(([key, value]) => {
+    const mapped = mapIndicatorColor(value)
+    return {
+      key,
+      label: formatIndicatorLabel(key),
+      value: value ?? 'OFF',
+      color: mapped?.css || null,
+      isOff: !mapped,
+      textColor: mapped ? getIndicatorTextColor(mapped.name) : null
+    }
+  })
+})
 
 // Sections state - shared between SectionsPane and TrackLayout
 const sections = ref(
@@ -387,6 +467,15 @@ const closeStatusDialog = () => {
   showStatusDialog.value = false
 }
 
+const openTrackDialog = (sectionId) => {
+  trackDialogSectionId.value = sectionId
+  showTrackDialog.value = true
+}
+
+const closeTrackDialog = () => {
+  showTrackDialog.value = false
+}
+
 const checkHealth = async () => {
   if (logWindowRef.value) {
     logWindowRef.value.addMessage('Checking connection to Raspberry Pi...')
@@ -422,6 +511,44 @@ const mapPointGroupType = (value) => {
   if (v === 'thru') return 'thru'
   if (v === 'branch') return 'branch'
   return null
+}
+
+const mapIndicatorColor = (value) => {
+  if (!value) return null
+  const v = String(value).toUpperCase()
+  if (v === 'OFF') return null
+  const map = {
+    RED: '#e53935',
+    GREEN: '#43a047',
+    YELLOW: '#fdd835',
+    AMBER: '#ffb300',
+    BLUE: '#1e88e5',
+    MAGENTA: '#d81b60',
+    CYAN: '#00acc1',
+    WHITE: '#ffffff',
+    ORANGE: '#fb8c00',
+    GRAY: '#9e9e9e',
+    BLACK: '#000000'
+  }
+  return { name: v.toLowerCase(), css: map[v] || v.toLowerCase() }
+}
+
+const formatIndicatorLabel = (key) => {
+  return String(key)
+    .replace(/_/g, ' ')
+    .replace(/\w\S*/g, word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+}
+
+const getIndicatorTextColor = (color) => {
+  const darkColors = new Set([
+    'black',
+    'blue',
+    'magenta',
+    'red',
+    'green',
+    'gray'
+  ])
+  return darkColors.has(color) ? '#ffffff' : '#111111'
 }
 
 const applyStatusUpdate = (status) => {
@@ -465,6 +592,10 @@ const applyStatusUpdate = (status) => {
       const bit = 1 << (sensor.id - 1)
       sensor.set = (mask & bit) !== 0
     }
+  }
+
+  if (payload.indicators && typeof payload.indicators === 'object') {
+    indicators.value = payload.indicators
   }
 
   // Sync previous maps to avoid outbound commands for status updates
@@ -870,6 +1001,63 @@ onUnmounted(() => {
   flex: 0 0 200px;
   min-height: 200px;
   border-top: 1px solid #ddd;
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #f5f5f5;
+}
+
+.log-pane,
+.status-pane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.status-pane {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.status-pane h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #cccccc;
+}
+
+.indicator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.5rem;
+  overflow: auto;
+}
+
+.indicator-box {
+  padding: 0.4rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #444;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: center;
+  color: #111;
+  background-color: #f5f5f5;
+  text-transform: none;
+}
+
+.indicator-box.off {
+  background-color: transparent;
+  color: #d4d4d4;
+  border-color: #666;
+}
+
+.status-placeholder {
+  font-size: 0.875rem;
+  color: #aaaaaa;
 }
 
 .dialog-overlay {
@@ -958,6 +1146,30 @@ onUnmounted(() => {
 
 .dialog-button.secondary:hover {
   background-color: #f0f0f0;
+}
+
+.track-control-dialog {
+  max-width: 500px;
+}
+
+.track-control-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.track-control-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.track-control-label {
+  font-weight: 600;
+  color: #333;
+  min-width: 90px;
 }
 
 .dialog-actions {
