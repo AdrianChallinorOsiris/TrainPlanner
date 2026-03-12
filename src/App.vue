@@ -3,7 +3,6 @@
     <div class="button-bar">
       <button class="bar-button" @click="handleReset">Reset</button>
       <button class="bar-button" @click="handleAllStop">All Stop</button>
-      <button class="bar-button" @click="handleLedTest">Led Test</button>
       <button class="bar-button" @click="handleHealth">Health</button>
       <button class="bar-button" @click="handleStatus">Status</button>
       <button class="bar-button" @click="handleShutdown">Shutdown</button>
@@ -536,6 +535,7 @@ const mapIndicatorColor = (value) => {
 const formatIndicatorLabel = (key) => {
   return String(key)
     .replace(/_/g, ' ')
+    .replace(/track\s*(\d+)/gi, 'Track $1')
     .replace(/\w\S*/g, word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
 }
 
@@ -565,7 +565,9 @@ const applyStatusUpdate = (status) => {
       if (mappedDirection) {
         section.direction = mappedDirection
       }
-      if (entry.speed !== undefined && entry.speed !== null) {
+      if (mappedDirection === 'off') {
+        section.speed = 0
+      } else if (entry.speed !== undefined && entry.speed !== null) {
         section.speed = entry.speed
       }
       if (entry.held !== undefined) {
@@ -744,13 +746,14 @@ watch(
 
       if (section.direction === 'off') {
         if (directionChanged) {
+          section.speed = 0
           try {
             if (logWindowRef.value) {
               logWindowRef.value.addMessage(
                 `Track ${section.id} set to OFF`
               )
             }
-            await api.setTrackSpeed(section.id, 100, 'OFF')
+            await api.setTrackSpeed(section.id, 0, 'OFF')
           } catch (error) {
             if (logWindowRef.value) {
               logWindowRef.value.addMessage(
