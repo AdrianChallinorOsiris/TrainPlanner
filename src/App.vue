@@ -61,19 +61,30 @@
         </div>
         <div class="status-pane">
           <h3>Track Status</h3>
-          <div v-if="indicatorEntries.length" class="indicator-grid">
-            <div
-              v-for="indicator in indicatorEntries"
-              :key="indicator.key"
-              class="indicator-box"
-              :class="{ off: indicator.isOff }"
-              :style="indicator.isOff ? null : { backgroundColor: indicator.color, color: indicator.textColor }"
-              :title="indicator.value"
-            >
-              {{ indicator.label }}
+          <div class="indicator-status">
+            <div class="indicator-row indicator-row-connected">
+              <div
+                class="indicator-box"
+                :style="{ backgroundColor: connectedIndicator.color, color: connectedIndicator.textColor }"
+                :title="connectedIndicator.value"
+              >
+                {{ connectedIndicator.label }}
+              </div>
+            </div>
+            <div v-if="trackIndicatorEntries.length" class="indicator-row indicator-row-tracks">
+              <div
+                v-for="indicator in trackIndicatorEntries"
+                :key="indicator.key"
+                class="indicator-box"
+                :class="{ off: indicator.isOff }"
+                :style="indicator.isOff ? null : { backgroundColor: indicator.color, color: indicator.textColor }"
+                :title="indicator.value"
+              >
+                {{ indicator.label }}
+              </div>
             </div>
           </div>
-          <div v-else class="status-placeholder">No indicators reported.</div>
+          <div v-if="!trackIndicatorEntries.length" class="status-placeholder">No track indicators reported.</div>
         </div>
       </div>
     </div>
@@ -100,18 +111,22 @@
             <option value="backwards">Backwards</option>
           </select>
         </label>
-        <label class="track-control-field">
+        <div class="track-control-field speed-buttons-field">
           <span class="track-control-label">Speed</span>
-          <input
-            v-model.number="trackDialogSection.speed"
-            type="number"
-            class="speed-input"
-            min="25"
-            max="100"
-            step="1"
-            :disabled="trackDialogSection.direction === 'off'"
-          />
-        </label>
+          <div class="speed-buttons-grid">
+            <button
+              v-for="preset in SPEED_PRESETS"
+              :key="preset"
+              type="button"
+              class="speed-button"
+              :class="{ selected: trackDialogSection.direction !== 'off' && trackDialogSection.speed === preset }"
+              :disabled="trackDialogSection.direction === 'off'"
+              @click="trackDialogSection.direction !== 'off' ? trackDialogSection.speed = preset : null"
+            >
+              {{ preset }}%
+            </button>
+          </div>
+        </div>
       </div>
       <button @click="closeTrackDialog" class="dialog-button">Close</button>
     </div>
@@ -220,6 +235,14 @@ import { api } from './services/api'
 import { getTrackSection } from './utils/trackData'
 import versionInfo from './version.json'
 
+const SPEED_PRESETS = [5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+function closestSpeedPreset(speed) {
+  if (speed == null || speed === 0) return 0
+  return SPEED_PRESETS.reduce((a, b) =>
+    Math.abs(a - speed) <= Math.abs(b - speed) ? a : b
+  )
+}
+
 const logWindowRef = ref(null)
 const showSimulationDialog = ref(false)
 const showConnectedDialog = ref(false)
@@ -239,6 +262,7 @@ const showRestartDialog = ref(false)
 const showAboutDialog = ref(false)
 const isApplyingStatus = ref(false)
 const statusIntervalId = ref(null)
+const piStatusConnected = ref(false)
 const trackDialogSection = computed(() => {
   if (trackDialogSectionId.value === null) {
     return null
@@ -246,17 +270,35 @@ const trackDialogSection = computed(() => {
   return sections.value.find(section => section.id === trackDialogSectionId.value) || null
 })
 
-const indicatorEntries = computed(() => {
-  return Object.entries(indicators.value || {}).map(([key, value]) => {
+const connectedIndicator = computed(() => ({
+  key: 'connected',
+  label: 'Connected',
+  value: piStatusConnected.value ? 'Connected' : 'Not Connected',
+  color: piStatusConnected.value ? '#43a047' : '#e53935',
+  isOff: false,
+  textColor: '#ffffff'
+}))
+
+const trackIndicatorEntries = computed(() => {
+  const entries = Object.entries(indicators.value || {}).map(([key, value]) => {
     const mapped = mapIndicatorColor(value)
+    const match = String(key).match(/track[\s_]*(\d+)/i)
+    const trackNum = match ? parseInt(match[1], 10) : null
     return {
       key,
       label: formatIndicatorLabel(key),
       value: value ?? 'OFF',
       color: mapped?.css || null,
       isOff: !mapped,
-      textColor: mapped ? getIndicatorTextColor(mapped.name) : null
+      textColor: mapped ? getIndicatorTextColor(mapped.name) : null,
+      trackNum
     }
+  })
+  return entries.sort((a, b) => {
+    if (a.trackNum != null && b.trackNum != null) return a.trackNum - b.trackNum
+    if (a.trackNum != null) return -1
+    if (b.trackNum != null) return 1
+    return String(a.key).localeCompare(b.key)
   })
 })
 
@@ -270,7 +312,7 @@ const sections = ref(
       name: sectionDef?.name || '',
       direction: 'off',
       held: false,
-      speed: 100
+      speed: 10
     }
   })
 )
@@ -568,7 +610,7 @@ const applyStatusUpdate = (status) => {
       if (mappedDirection === 'off') {
         section.speed = 0
       } else if (entry.speed !== undefined && entry.speed !== null) {
-        section.speed = entry.speed
+        section.speed = closestSpeedPreset(entry.speed)
       }
       if (entry.held !== undefined) {
         section.held = Boolean(entry.held)
@@ -632,8 +674,9 @@ const pollStatus = async () => {
   try {
     const status = await api.getStatus()
     applyStatusUpdate(status)
+    piStatusConnected.value = true
   } catch (error) {
-    // Ignore transient errors to avoid log spam
+    piStatusConnected.value = false
   }
 }
 
@@ -765,11 +808,14 @@ watch(
         continue
       }
 
+      if (directionChanged && prevDirection === 'off') {
+        section.speed = 5
+      }
       const direction =
         section.direction === 'forward'
           ? 'FWD'
           : 'BCK'
-      const speed = Math.min(100, Math.max(25, section.speed || 100))
+      const speed = Math.min(100, Math.max(0, section.speed ?? 10))
       try {
         if (logWindowRef.value) {
           const message = directionChanged
@@ -1033,7 +1079,17 @@ onUnmounted(() => {
   color: #cccccc;
 }
 
-.indicator-grid {
+.indicator-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.indicator-row-connected {
+  display: flex;
+}
+
+.indicator-row-tracks {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 0.5rem;
@@ -1173,6 +1229,43 @@ onUnmounted(() => {
   font-weight: 600;
   color: #333;
   min-width: 90px;
+}
+
+.speed-buttons-field {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.speed-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.speed-button {
+  padding: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+}
+
+.speed-button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+
+.speed-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.speed-button.selected {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
 }
 
 .dialog-actions {

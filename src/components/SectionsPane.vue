@@ -29,7 +29,7 @@
             v-model.number="section.speed"
             type="number"
             class="speed-input"
-            min="25"
+            min="0"
             max="100"
             step="1"
             :disabled="section.direction === 'off'"
