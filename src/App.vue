@@ -1,13 +1,16 @@
 <template>
   <div class="app-shell">
     <div class="button-bar">
-      <button class="bar-button" @click="handleReset">Reset</button>
-      <button class="bar-button" @click="handleAllStop">All Stop</button>
-      <button class="bar-button" @click="handleHealth">Health</button>
-      <button class="bar-button" @click="handleStatus">Status</button>
-      <button class="bar-button" @click="handleShutdown">Shutdown</button>
-      <button class="bar-button" @click="handleRestart">Restart</button>
-      <button class="bar-button" @click="handleAbout">About</button>
+      <button class="bar-button bar-button-amber" @click="handleReset">Reset</button>
+      <button class="bar-button bar-button-amber" @click="handleAllStop">All Stop</button>
+      <button class="bar-button bar-button-light-green" @click="handleHealth">Health</button>
+      <button class="bar-button bar-button-light-green" @click="handleStatus">Status</button>
+      <button class="bar-button bar-button-light-green" @click="handleAbout">About</button>
+      <button class="bar-button bar-button-shutdown" @click="handleShutdown">Shutdown</button>
+      <button class="bar-button bar-button-shutdown" @click="handleRestart">Restart</button>
+      <button class="bar-button bar-button-light-blue" @click="openEvolveDialog">Evolve</button>
+      <button class="bar-button bar-button-light-blue" @click="handleRoadmap">Roadmap</button>
+      <button class="bar-button bar-button-light-blue" @click="handleJournal">Journal</button>
     </div>
 
     <div class="app-container">
@@ -62,16 +65,19 @@
         <div class="status-pane">
           <h3>Track Status</h3>
           <div class="indicator-status">
-            <div class="indicator-row indicator-row-connected">
+            <div class="indicator-row indicator-grid-6">
               <div
+                v-for="indicator in topStatusRowEntries"
+                :key="indicator.key"
                 class="indicator-box"
-                :style="{ backgroundColor: connectedIndicator.color, color: connectedIndicator.textColor }"
-                :title="connectedIndicator.value"
+                :class="{ off: indicator.isOff }"
+                :style="indicator.isOff ? null : { backgroundColor: indicator.color, color: indicator.textColor }"
+                :title="indicator.value"
               >
-                {{ connectedIndicator.label }}
+                {{ indicator.label }}
               </div>
             </div>
-            <div v-if="trackIndicatorEntries.length" class="indicator-row indicator-row-tracks">
+            <div v-if="trackIndicatorEntries.length" class="indicator-row indicator-grid-6">
               <div
                 v-for="indicator in trackIndicatorEntries"
                 :key="indicator.key"
@@ -221,6 +227,80 @@
       </div>
     </div>
   </div>
+
+  <!-- Evolve Dialog -->
+  <div v-if="showEvolveDialog" class="dialog-overlay" @click.self="closeEvolveDialog">
+    <div class="dialog evolve-dialog">
+      <h2>Evolve</h2>
+      <p class="evolve-hint">
+        This runs a long job on the server. It can take several minutes (often around 10 minutes or more).
+        Keep this dialog open until it finishes, or cancel to abort the request.
+      </p>
+      <div v-if="evolveLoading" class="evolve-working" role="status" aria-live="polite">
+        <span class="evolve-working-spinner" aria-hidden="true"></span>
+        Working… please wait.
+      </div>
+      <div v-if="evolveResult && !evolveLoading" class="evolve-summary">
+        <div v-if="evolveResult.session != null" class="evolve-summary-row">
+          <span class="evolve-summary-key">Session</span>
+          <span class="evolve-summary-value">{{ evolveResult.session }}</span>
+        </div>
+        <div v-if="evolveResult.status" class="evolve-summary-row">
+          <span class="evolve-summary-key">Status</span>
+          <span class="evolve-summary-value">{{ evolveResult.status }}</span>
+        </div>
+        <div v-if="evolveResult.tokens" class="evolve-summary-row">
+          <span class="evolve-summary-key">Tokens</span>
+          <span class="evolve-summary-value">
+            in {{ evolveResult.tokens.input ?? '—' }}, out {{ evolveResult.tokens.output ?? '—' }}
+          </span>
+        </div>
+        <div
+          v-if="evolveResult.warnings && evolveResult.warnings.length"
+          class="evolve-warnings"
+        >
+          <strong>Warnings:</strong>
+          <ul>
+            <li v-for="(w, i) in evolveResult.warnings" :key="i">{{ w }}</li>
+          </ul>
+        </div>
+      </div>
+      <div class="evolve-transcript-wrap">
+        <div class="evolve-transcript-label">Transcript</div>
+        <pre class="evolve-transcript">{{ evolveResult?.transcript ?? '' }}</pre>
+      </div>
+      <p v-if="evolveError" class="evolve-error">{{ evolveError }}</p>
+      <div class="dialog-actions">
+        <button type="button" class="dialog-button secondary" @click="closeEvolveDialog">
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="dialog-button"
+          :disabled="evolveLoading"
+          @click="runEvolve"
+        >
+          Evolve
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Roadmap / Journal document dialog (shared) -->
+  <div v-if="showDocDialog" class="dialog-overlay" @click.self="closeDocDialog">
+    <div class="dialog markdown-doc-dialog">
+      <h2>{{ docDialogTitle }}</h2>
+      <p v-if="docPath" class="doc-path">{{ docPath }}</p>
+      <div v-if="docLoading" class="doc-loading" role="status">Loading…</div>
+      <p v-else-if="docError" class="evolve-error">{{ docError }}</p>
+      <div v-else class="doc-text-wrap">
+        <pre class="doc-text">{{ docDisplayText }}</pre>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="dialog-button" @click="closeDocDialog">Close</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -234,6 +314,15 @@ import TrackLayout from './components/TrackLayout.vue'
 import { api } from './services/api'
 import { getTrackSection } from './utils/trackData'
 import versionInfo from './version.json'
+
+const EVOLVE_CLIENT_TIMEOUT_MS = 20 * 60 * 1000
+
+function normalizeDocText(raw) {
+  if (typeof raw !== 'string') return ''
+  return raw
+    .replace(/\r\n/g, '\n')
+    .replace(/\\n/g, '\n')
+}
 
 const SPEED_PRESETS = [5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100]
 function closestSpeedPreset(speed) {
@@ -260,6 +349,20 @@ const trackDialogSectionId = ref(null)
 const showShutdownDialog = ref(false)
 const showRestartDialog = ref(false)
 const showAboutDialog = ref(false)
+const showDocDialog = ref(false)
+const docDialogTitle = ref('')
+const docPath = ref('')
+const docText = ref('')
+const docLoading = ref(false)
+const docError = ref('')
+const docDisplayText = computed(() => normalizeDocText(docText.value))
+
+const showEvolveDialog = ref(false)
+const evolveLoading = ref(false)
+const evolveResult = ref(null)
+const evolveError = ref('')
+const evolveAbortController = ref(null)
+let evolveTimeoutId = null
 const isApplyingStatus = ref(false)
 const statusIntervalId = ref(null)
 const piStatusConnected = ref(false)
@@ -279,27 +382,95 @@ const connectedIndicator = computed(() => ({
   textColor: '#ffffff'
 }))
 
-const trackIndicatorEntries = computed(() => {
-  const entries = Object.entries(indicators.value || {}).map(([key, value]) => {
+/** Ordered system indicators after Connected; match Pi payload keys (flexible). */
+const SYSTEM_STATUS_ORDER = [
+  {
+    displayLabel: 'System Ready',
+    matchKeys: ['system_ready', 'systemready']
+  },
+  {
+    displayLabel: 'Protection Ready',
+    matchKeys: ['protection_ready', 'protectionready']
+  },
+  {
+    displayLabel: '1201 Error',
+    matchKeys: ['1201_error', 'error_1201', 'err_1201']
+  },
+  {
+    displayLabel: '1202 Error',
+    matchKeys: ['1202_error', 'error_1202', 'err_1202']
+  },
+  {
+    displayLabel: 'Cycle Overrun',
+    matchKeys: ['cycle_overrun', 'cycleoverrun']
+  }
+]
+
+function normalizeIndicatorKey(key) {
+  return String(key)
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+    .replace(/_+/g, '_')
+}
+
+function findSystemIndicatorKey(indicatorsObj, matchKeys, excludeKeys) {
+  for (const rawKey of Object.keys(indicatorsObj || {})) {
+    if (excludeKeys.has(rawKey)) continue
+    const n = normalizeIndicatorKey(rawKey)
+    if (matchKeys.some((mk) => n === mk)) {
+      return rawKey
+    }
+  }
+  return null
+}
+
+const systemStatusIndicatorEntries = computed(() => {
+  const obj = indicators.value || {}
+  const usedKeys = new Set()
+  const list = []
+  for (const slot of SYSTEM_STATUS_ORDER) {
+    const key = findSystemIndicatorKey(obj, slot.matchKeys, usedKeys)
+    if (!key) continue
+    usedKeys.add(key)
+    const value = obj[key]
     const mapped = mapIndicatorColor(value)
-    const match = String(key).match(/track[\s_]*(\d+)/i)
-    const trackNum = match ? parseInt(match[1], 10) : null
-    return {
+    list.push({
       key,
-      label: formatIndicatorLabel(key),
+      label: slot.displayLabel,
       value: value ?? 'OFF',
       color: mapped?.css || null,
       isOff: !mapped,
-      textColor: mapped ? getIndicatorTextColor(mapped.name) : null,
-      trackNum
-    }
-  })
-  return entries.sort((a, b) => {
-    if (a.trackNum != null && b.trackNum != null) return a.trackNum - b.trackNum
-    if (a.trackNum != null) return -1
-    if (b.trackNum != null) return 1
-    return String(a.key).localeCompare(b.key)
-  })
+      textColor: mapped ? getIndicatorTextColor(mapped.name) : null
+    })
+  }
+  return { entries: list, usedKeys }
+})
+
+const trackIndicatorEntries = computed(() => {
+  const { usedKeys } = systemStatusIndicatorEntries.value
+  const entries = Object.entries(indicators.value || {})
+    .filter(([key]) => !usedKeys.has(key))
+    .map(([key, value]) => {
+      const mapped = mapIndicatorColor(value)
+      const match = String(key).match(/track[\s_]*(\d+)/i)
+      const trackNum = match ? parseInt(match[1], 10) : null
+      return {
+        key,
+        label: formatIndicatorLabel(key),
+        value: value ?? 'OFF',
+        color: mapped?.css || null,
+        isOff: !mapped,
+        textColor: mapped ? getIndicatorTextColor(mapped.name) : null,
+        trackNum
+      }
+    })
+  return entries
+    .filter((e) => e.trackNum != null)
+    .sort((a, b) => a.trackNum - b.trackNum)
+})
+
+const topStatusRowEntries = computed(() => {
+  return [connectedIndicator.value, ...systemStatusIndicatorEntries.value.entries]
 })
 
 // Sections state - shared between SectionsPane and TrackLayout
@@ -442,6 +613,84 @@ const handleAbout = () => {
 
 const closeAboutDialog = () => {
   showAboutDialog.value = false
+}
+
+const openEvolveDialog = () => {
+  evolveError.value = ''
+  showEvolveDialog.value = true
+}
+
+const openDocDialog = async (title, fetchFn) => {
+  docDialogTitle.value = title
+  docPath.value = ''
+  docText.value = ''
+  docError.value = ''
+  docLoading.value = true
+  showDocDialog.value = true
+  try {
+    const data = await fetchFn()
+    docPath.value = typeof data?.path === 'string' ? data.path : ''
+    docText.value = typeof data?.text === 'string' ? data.text : ''
+  } catch (error) {
+    docError.value = error.message || String(error)
+  } finally {
+    docLoading.value = false
+  }
+}
+
+const handleRoadmap = () => openDocDialog('Roadmap', () => api.fetchRoadmapDoc())
+
+const handleJournal = () => openDocDialog('Journal', () => api.fetchJournalDoc())
+
+const closeDocDialog = () => {
+  showDocDialog.value = false
+  docPath.value = ''
+  docText.value = ''
+  docError.value = ''
+}
+
+const closeEvolveDialog = () => {
+  if (evolveTimeoutId != null) {
+    clearTimeout(evolveTimeoutId)
+    evolveTimeoutId = null
+  }
+  evolveAbortController.value?.abort()
+  evolveAbortController.value = null
+  showEvolveDialog.value = false
+}
+
+const runEvolve = async () => {
+  evolveResult.value = null
+  evolveError.value = ''
+  evolveLoading.value = true
+  if (evolveTimeoutId != null) {
+    clearTimeout(evolveTimeoutId)
+    evolveTimeoutId = null
+  }
+  evolveAbortController.value?.abort()
+  const controller = new AbortController()
+  evolveAbortController.value = controller
+  evolveTimeoutId = setTimeout(() => {
+    controller.abort()
+    evolveTimeoutId = null
+  }, EVOLVE_CLIENT_TIMEOUT_MS)
+  try {
+    const data = await api.evolve({ signal: controller.signal })
+    evolveResult.value = data
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      evolveError.value = 'Request cancelled or timed out (20 minute client limit).'
+    } else {
+      evolveError.value = error.message || String(error)
+    }
+  } finally {
+    if (evolveTimeoutId != null) {
+      clearTimeout(evolveTimeoutId)
+      evolveTimeoutId = null
+    }
+    evolveAbortController.value = null
+    evolveLoading.value = false
+  }
 }
 
 const handleShutdown = async () => {
@@ -970,6 +1219,53 @@ onUnmounted(() => {
   background-color: #f0f0f0;
 }
 
+.bar-button-amber {
+  background-color: #ffca28;
+  border-color: #ffb300;
+  color: #3e2723;
+}
+
+.bar-button-amber:hover {
+  background-color: #ffc107;
+  border-color: #ff8f00;
+  color: #3e2723;
+}
+
+.bar-button-light-green {
+  background-color: #e8f5e9;
+  border-color: #a5d6a7;
+  color: #1b5e20;
+}
+
+.bar-button-light-green:hover {
+  background-color: #c8e6c9;
+  border-color: #81c784;
+  color: #1b5e20;
+}
+
+.bar-button-light-blue {
+  background-color: #e1f5fe;
+  border-color: #81d4fa;
+  color: #01579b;
+}
+
+.bar-button-light-blue:hover {
+  background-color: #b3e5fc;
+  border-color: #4fc3f7;
+}
+
+.bar-button-shutdown {
+  background-color: #c62828;
+  border-color: #b71c1c;
+  color: #ffffff;
+}
+
+.bar-button-shutdown:hover {
+  background-color: #b71c1c;
+  border-color: #8e0000;
+  color: #ffffff;
+}
+
 .app-container {
   display: flex;
   flex-direction: column;
@@ -1085,13 +1381,9 @@ onUnmounted(() => {
   gap: 0.5rem;
 }
 
-.indicator-row-connected {
-  display: flex;
-}
-
-.indicator-row-tracks {
+.indicator-grid-6 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0.5rem;
   overflow: auto;
 }
@@ -1205,6 +1497,186 @@ onUnmounted(() => {
 
 .dialog-button.secondary:hover {
   background-color: #f0f0f0;
+}
+
+.dialog-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.evolve-dialog {
+  max-width: min(880px, 94vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.evolve-hint {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0 0 0.75rem 0;
+}
+
+.evolve-working {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.75rem;
+  background: #e7f3ff;
+  border: 1px solid #90caf9;
+  border-radius: 4px;
+  color: #0d47a1;
+  font-weight: 500;
+}
+
+.evolve-working-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #90caf9;
+  border-top-color: #0d47a1;
+  border-radius: 50%;
+  animation: evolve-spin 0.8s linear infinite;
+}
+
+@keyframes evolve-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.evolve-summary {
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.evolve-summary-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.evolve-summary-key {
+  font-weight: 600;
+  min-width: 5rem;
+}
+
+.evolve-warnings {
+  margin-top: 0.5rem;
+  color: #856404;
+  font-size: 0.85rem;
+}
+
+.evolve-warnings ul {
+  margin: 0.25rem 0 0 1.25rem;
+  padding: 0;
+}
+
+.evolve-transcript-wrap {
+  flex: 1;
+  min-height: 12rem;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fafafa;
+  overflow: hidden;
+}
+
+.evolve-transcript-label {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #555;
+  background: #eee;
+  border-bottom: 1px solid #ddd;
+}
+
+.evolve-transcript {
+  flex: 1;
+  margin: 0;
+  padding: 0.75rem;
+  overflow: auto;
+  max-height: min(42vh, 28rem);
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #222;
+}
+
+.evolve-error {
+  color: #c62828;
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.evolve-dialog .dialog-actions {
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.evolve-dialog .dialog-actions .dialog-button {
+  margin-top: 0;
+}
+
+.markdown-doc-dialog {
+  max-width: min(880px, 94vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.markdown-doc-dialog h2 {
+  flex-shrink: 0;
+}
+
+.doc-path {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: #666;
+  word-break: break-all;
+}
+
+.doc-loading {
+  padding: 1rem;
+  color: #555;
+}
+
+.markdown-doc-dialog .doc-text-wrap {
+  flex: 1;
+  min-height: 10rem;
+  max-height: min(65vh, 36rem);
+  overflow: auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fafafa;
+}
+
+.doc-text {
+  margin: 0;
+  padding: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #222;
+}
+
+.markdown-doc-dialog .dialog-actions {
+  margin-top: 1rem;
+  flex-shrink: 0;
+}
+
+.markdown-doc-dialog .dialog-actions .dialog-button {
+  margin-top: 0;
 }
 
 .track-control-dialog {

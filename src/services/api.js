@@ -1,5 +1,24 @@
 const API_BASE_URL = 'http://192.168.1.80:5000/api'
 const HEALTH_CHECK_TIMEOUT = 3000
+/**
+ * Evolve endpoint: same-origin `/evolve` in dev (Vite proxies to 127.0.0.1:8080) to avoid CORS.
+ * Set VITE_EVOLVE_URL in .env for production builds if the app is not served behind a matching proxy.
+ */
+const EVOLVE_URL =
+  typeof import.meta.env.VITE_EVOLVE_URL === 'string' && import.meta.env.VITE_EVOLVE_URL
+    ? import.meta.env.VITE_EVOLVE_URL
+    : '/evolve'
+
+/** Open in browser; dev uses Vite proxy to localhost:8080. Override with VITE_* for production. */
+export const ROADMAP_URL =
+  typeof import.meta.env.VITE_ROADMAP_URL === 'string' && import.meta.env.VITE_ROADMAP_URL
+    ? import.meta.env.VITE_ROADMAP_URL
+    : '/roadmap'
+
+export const JOURNAL_URL =
+  typeof import.meta.env.VITE_JOURNAL_URL === 'string' && import.meta.env.VITE_JOURNAL_URL
+    ? import.meta.env.VITE_JOURNAL_URL
+    : '/journal'
 
 export const api = {
   async healthCheck() {
@@ -204,5 +223,61 @@ export const api = {
       throw new Error(`HTTP ${response.status}`)
     }
     return { success: true }
+  },
+  /**
+   * POST to Bastet evolve endpoint. May take many minutes; pass AbortSignal for cancel/timeout.
+   * @param {{ signal?: AbortSignal }} [options]
+   */
+  async evolve(options = {}) {
+    const response = await fetch(EVOLVE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      signal: options.signal
+    })
+    if (!response.ok) {
+      const text = await response.text()
+      throw new Error(
+        text ? `HTTP ${response.status}: ${text.slice(0, 300)}` : `HTTP ${response.status}`
+      )
+    }
+    return response.json()
+  },
+  /**
+   * GET roadmap JSON { path, text } from Bastet (dev: Vite proxy).
+   */
+  async fetchRoadmapDoc() {
+    const response = await fetch(ROADMAP_URL, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json'
+      }
+    })
+    if (!response.ok) {
+      const text = await response.text()
+      throw new Error(
+        text ? `HTTP ${response.status}: ${text.slice(0, 300)}` : `HTTP ${response.status}`
+      )
+    }
+    return response.json()
+  },
+  /**
+   * GET journal JSON { path, text } from Bastet (dev: Vite proxy).
+   */
+  async fetchJournalDoc() {
+    const response = await fetch(JOURNAL_URL, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json'
+      }
+    })
+    if (!response.ok) {
+      const text = await response.text()
+      throw new Error(
+        text ? `HTTP ${response.status}: ${text.slice(0, 300)}` : `HTTP ${response.status}`
+      )
+    }
+    return response.json()
   }
 }
