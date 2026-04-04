@@ -8,9 +8,76 @@
       <button class="bar-button bar-button-light-green" @click="handleAbout">About</button>
       <button class="bar-button bar-button-shutdown" @click="handleShutdown">Shutdown</button>
       <button class="bar-button bar-button-shutdown" @click="handleRestart">Restart</button>
-      <button class="bar-button bar-button-light-blue" @click="openEvolveDialog">Evolve</button>
-      <button class="bar-button bar-button-light-blue" @click="handleRoadmap">Roadmap</button>
-      <button class="bar-button bar-button-light-blue" @click="handleJournal">Journal</button>
+      <details ref="aiMenuDetails" class="bar-dropdown bar-dropdown-ai-hidden" aria-hidden="true">
+        <summary class="bar-button bar-button-light-blue bar-dropdown-summary">AI</summary>
+        <ul class="bar-dropdown-menu" role="menu">
+          <li role="none">
+            <button
+              type="button"
+              class="bar-dropdown-item"
+              role="menuitem"
+              @click="handleAiEvolve"
+            >
+              Evolve
+            </button>
+          </li>
+          <li role="none">
+            <button
+              type="button"
+              class="bar-dropdown-item"
+              role="menuitem"
+              @click="handleAiRoadmap"
+            >
+              Roadmap
+            </button>
+          </li>
+          <li role="none">
+            <button
+              type="button"
+              class="bar-dropdown-item"
+              role="menuitem"
+              @click="handleAiJournal"
+            >
+              Journal
+            </button>
+          </li>
+        </ul>
+      </details>
+      <details ref="loopsMenuDetails" class="bar-dropdown">
+        <summary class="bar-button bar-dropdown-summary">Loops</summary>
+        <ul class="bar-dropdown-menu" role="menu">
+          <li role="none">
+            <button
+              type="button"
+              class="bar-dropdown-item"
+              role="menuitem"
+              @click="handleLoopInner"
+            >
+              Inner
+            </button>
+          </li>
+          <li role="none">
+            <button
+              type="button"
+              class="bar-dropdown-item"
+              role="menuitem"
+              @click="handleLoopMiddle"
+            >
+              Middle
+            </button>
+          </li>
+          <li role="none">
+            <button
+              type="button"
+              class="bar-dropdown-item"
+              role="menuitem"
+              @click="handleLoopOuter"
+            >
+              Outer
+            </button>
+          </li>
+        </ul>
+      </details>
     </div>
 
     <div class="app-container">
@@ -135,6 +202,49 @@
         </div>
       </div>
       <button @click="closeTrackDialog" class="dialog-button">Close</button>
+    </div>
+  </div>
+
+  <!-- Loop (Inner / Middle / Outer) — same controls as single track, applies to all tracks in the loop -->
+  <div v-if="showLoopDialog" class="dialog-overlay" @click.self="closeLoopDialog">
+    <div class="dialog track-control-dialog">
+      <h2>{{ loopDialogTitle }}</h2>
+      <div class="track-control-form">
+        <label class="track-control-field">
+          <span class="track-control-label">Direction</span>
+          <select
+            v-model="loopDialogForm.direction"
+            class="direction-select"
+            :class="{
+              'direction-forward': loopDialogForm.direction === 'forward',
+              'direction-backwards': loopDialogForm.direction === 'backwards',
+              'direction-off': loopDialogForm.direction === 'off'
+            }"
+          >
+            <option value="off">Off</option>
+            <option value="forward">Forward</option>
+            <option value="backwards">Backwards</option>
+          </select>
+        </label>
+        <div class="track-control-field speed-buttons-field">
+          <span class="track-control-label">Speed</span>
+          <div class="speed-buttons-grid">
+            <button
+              v-for="preset in SPEED_PRESETS"
+              :key="preset"
+              type="button"
+              class="speed-button"
+              :class="{ selected: loopDialogForm.direction !== 'off' && loopDialogForm.speed === preset }"
+              :disabled="loopDialogForm.direction === 'off'"
+              @click="loopDialogForm.direction !== 'off' ? loopDialogForm.speed = preset : null"
+            >
+              {{ preset }}%
+            </button>
+          </div>
+        </div>
+      </div>
+      <p class="loop-dialog-tracks">Tracks: {{ loopDialogTrackIds.join(', ') }}</p>
+      <button type="button" class="dialog-button" @click="closeLoopDialog">Close</button>
     </div>
   </div>
   
@@ -304,7 +414,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, provide, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, provide, watch, nextTick } from 'vue'
 import SectionsPane from './components/SectionsPane.vue'
 import PointsPane from './components/PointsPane.vue'
 import SensorsPane from './components/SensorsPane.vue'
@@ -316,6 +426,23 @@ import { getTrackSection } from './utils/trackData'
 import versionInfo from './version.json'
 
 const EVOLVE_CLIENT_TIMEOUT_MS = 20 * 60 * 1000
+
+/** Track section IDs per loop (Inner: 5, 6, 7, 8, 10). */
+const LOOP_INNER_IDS = [5, 6, 7, 8, 10]
+const LOOP_MIDDLE_IDS = [3, 4]
+const LOOP_OUTER_IDS = [1, 2]
+
+const LOOP_GROUP_IDS = {
+  inner: LOOP_INNER_IDS,
+  middle: LOOP_MIDDLE_IDS,
+  outer: LOOP_OUTER_IDS
+}
+
+const LOOP_DIALOG_TITLES = {
+  inner: 'Inner loop',
+  middle: 'Middle loop',
+  outer: 'Outer loop'
+}
 
 function normalizeDocText(raw) {
   if (typeof raw !== 'string') return ''
@@ -346,6 +473,17 @@ const heldCount = ref(0)
 const indicators = ref({})
 const showTrackDialog = ref(false)
 const trackDialogSectionId = ref(null)
+const showLoopDialog = ref(false)
+const loopDialogKind = ref(null)
+const loopDialogForm = ref({ direction: 'off', speed: 10 })
+const loopDialogTrackIds = ref([])
+const loopFormSyncSkip = ref(false)
+const loopsMenuDetails = ref(null)
+
+const loopDialogTitle = computed(() => {
+  const k = loopDialogKind.value
+  return k && LOOP_DIALOG_TITLES[k] ? LOOP_DIALOG_TITLES[k] : 'Loop'
+})
 const showShutdownDialog = ref(false)
 const showRestartDialog = ref(false)
 const showAboutDialog = ref(false)
@@ -510,6 +648,22 @@ const sensors = ref(
 )
 const previousSensors = ref(new Map())
 
+watch(
+  loopDialogForm,
+  () => {
+    if (loopFormSyncSkip.value || !showLoopDialog.value) return
+    const d = loopDialogForm.value.direction
+    const spd = loopDialogForm.value.speed
+    for (const id of loopDialogTrackIds.value) {
+      const section = sections.value.find(s => s.id === id)
+      if (!section) continue
+      section.direction = d
+      section.speed = d === 'off' ? 0 : spd
+    }
+  },
+  { deep: true }
+)
+
 const closeSimulationDialog = () => {
   showSimulationDialog.value = false
 }
@@ -613,6 +767,27 @@ const handleAbout = () => {
 
 const closeAboutDialog = () => {
   showAboutDialog.value = false
+}
+
+const aiMenuDetails = ref(null)
+
+const closeAiMenu = () => {
+  aiMenuDetails.value?.removeAttribute('open')
+}
+
+const handleAiEvolve = () => {
+  closeAiMenu()
+  openEvolveDialog()
+}
+
+const handleAiRoadmap = () => {
+  closeAiMenu()
+  handleRoadmap()
+}
+
+const handleAiJournal = () => {
+  closeAiMenu()
+  handleJournal()
 }
 
 const openEvolveDialog = () => {
@@ -764,6 +939,39 @@ const openTrackDialog = (sectionId) => {
 
 const closeTrackDialog = () => {
   showTrackDialog.value = false
+}
+
+const closeLoopsMenu = () => {
+  loopsMenuDetails.value?.removeAttribute('open')
+}
+
+function openLoopDialog(kind) {
+  closeLoopsMenu()
+  showTrackDialog.value = false
+  const ids = LOOP_GROUP_IDS[kind]
+  if (!ids?.length) return
+  const first = sections.value.find(s => s.id === ids[0])
+  loopFormSyncSkip.value = true
+  loopDialogKind.value = kind
+  loopDialogTrackIds.value = [...ids]
+  loopDialogForm.value = {
+    direction: first?.direction ?? 'off',
+    speed: first?.direction === 'off' ? 0 : (first?.speed ?? 10)
+  }
+  showLoopDialog.value = true
+  nextTick(() => {
+    loopFormSyncSkip.value = false
+  })
+}
+
+const handleLoopInner = () => openLoopDialog('inner')
+const handleLoopMiddle = () => openLoopDialog('middle')
+const handleLoopOuter = () => openLoopDialog('outer')
+
+const closeLoopDialog = () => {
+  showLoopDialog.value = false
+  loopDialogKind.value = null
+  loopDialogTrackIds.value = []
 }
 
 const checkHealth = async () => {
@@ -1058,7 +1266,9 @@ watch(
       }
 
       if (directionChanged && prevDirection === 'off') {
-        section.speed = 5
+        section.speed = showLoopDialog.value
+          ? Math.min(100, Math.max(0, loopDialogForm.value.speed ?? 10))
+          : 5
       }
       const direction =
         section.direction === 'forward'
@@ -1252,6 +1462,72 @@ onUnmounted(() => {
 .bar-button-light-blue:hover {
   background-color: #b3e5fc;
   border-color: #4fc3f7;
+}
+
+.bar-dropdown {
+  position: relative;
+}
+
+/* Hidden but kept in DOM/JS for future use */
+.bar-dropdown-ai-hidden {
+  display: none;
+}
+
+.bar-dropdown-summary {
+  list-style: none;
+  user-select: none;
+}
+
+.bar-dropdown-summary::-webkit-details-marker {
+  display: none;
+}
+
+.bar-dropdown-summary::after {
+  content: ' ▾';
+  font-size: 0.75em;
+  opacity: 0.85;
+}
+
+.bar-dropdown[open] .bar-dropdown-summary::after {
+  content: ' ▴';
+}
+
+.bar-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 200;
+  min-width: 11rem;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #81d4fa;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.bar-dropdown-menu li {
+  margin: 0;
+  padding: 0;
+}
+
+.bar-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.45rem 1rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-weight: 600;
+  font-size: inherit;
+  font-family: inherit;
+  color: #01579b;
+  cursor: pointer;
+}
+
+.bar-dropdown-item:hover {
+  background-color: #e1f5fe;
 }
 
 .bar-button-shutdown {
@@ -1677,6 +1953,12 @@ onUnmounted(() => {
 
 .markdown-doc-dialog .dialog-actions .dialog-button {
   margin-top: 0;
+}
+
+.loop-dialog-tracks {
+  margin: 0 0 1rem 0;
+  font-size: 0.85rem;
+  color: #666;
 }
 
 .track-control-dialog {
