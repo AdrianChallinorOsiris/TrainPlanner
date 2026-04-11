@@ -672,8 +672,18 @@ const updateLayoutMode = () => {
   isCompact.value = window.matchMedia('(max-width: 1200px)').matches
 }
 
+const clearAllSensors = () => {
+  for (const sensor of sensors.value) {
+    sensor.set = false
+  }
+}
+
 const handleReset = async () => {
   if (!liveMode.value) {
+    clearAllSensors()
+    if (logWindowRef.value) {
+      logWindowRef.value.addMessage('Reset (sensors cleared)')
+    }
     return
   }
   try {
@@ -681,6 +691,7 @@ const handleReset = async () => {
       logWindowRef.value.addMessage('Reset button pressed')
     }
     await api.reset()
+    clearAllSensors()
     if (logWindowRef.value) {
       logWindowRef.value.addMessage('Reset command sent')
     }
@@ -1089,9 +1100,15 @@ const applyStatusUpdate = (status) => {
 
   if (typeof payload.sensors === 'number') {
     const mask = payload.sensors
+    const prevSensorMap = previousSensors.value
     for (const sensor of sensors.value) {
       const bit = 1 << (sensor.id - 1)
-      sensor.set = (mask & bit) !== 0
+      const nextSet = (mask & bit) !== 0
+      const prevSet = prevSensorMap.get(sensor.id) ?? false
+      if (nextSet && !prevSet && logWindowRef.value) {
+        logWindowRef.value.addMessage(`Sensor ${sensor.id} triggered`)
+      }
+      sensor.set = nextSet
     }
   }
 
@@ -1332,9 +1349,6 @@ watch(
     if (isApplyingStatus.value) {
       return
     }
-    if (!liveMode.value) {
-      return
-    }
     const prevMap = previousSensors.value
     const nextMap = new Map()
     for (const sensor of newSensors) {
@@ -1346,13 +1360,14 @@ watch(
       if (prevValue === undefined) {
         continue
       }
+      if (sensor.set && logWindowRef.value) {
+        logWindowRef.value.addMessage(`Sensor ${sensor.id} triggered`)
+      }
+      if (!liveMode.value) {
+        continue
+      }
       const value = sensor.set ? 'true' : 'false'
       try {
-        if (logWindowRef.value) {
-          logWindowRef.value.addMessage(
-            `Sensor ${sensor.id} set to ${value}`
-          )
-        }
         await api.setSensorValue(sensor.id, value)
       } catch (error) {
         if (logWindowRef.value) {
